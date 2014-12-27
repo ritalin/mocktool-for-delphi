@@ -89,21 +89,17 @@ begin
 
       role := invoker.Roles[0];
 
-      role.DoInvoke(val);
+      role.DoInvoke(invoker.Method, val);
 
       Its('Invoker:roles[0]:val').Val(val).Should(BeEqualTo(28));
 
-      res := role.Verify;
+      Its('Verify:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-      Its('Verify:status').Val(res.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
-
-      role.DoInvoke(val);
+      role.DoInvoke(invoker.Method, val);
 
       Its('Invoker:roles[0]:val').Val(val).Should(BeEqualTo(28));
 
-      res := role.Verify;
-
-      Its('Verify:status').Val(res.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Verify:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;
@@ -131,29 +127,29 @@ begin
       Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
       Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(2));
       Its('Invoker:roles[0]'    ).Val(TObject(invoker.Roles[0]).ClassType).Should(BeEqualTo(TMethodSetupRole));
-      Its('Invoker:roles[1]'    ).Val(TObject(invoker.Roles[1]).ClassType).Should(BeEqualTo(TExpectRole));
+      Its('Invoker:roles[1]'    ).Val(TObject(invoker.Roles[1]).ClassType).Should(BeEqualTo(TCountExpectRole));
 
       role1 := invoker.Roles[0];
       role2 := invoker.Roles[1];
 
-      role1.DoInvoke(val1);
-      role2.DoInvoke(val2);
+      role1.DoInvoke(invoker.Method, val1);
+      role2.DoInvoke(invoker.Method, val2);
 
       Its('Invoker:roles[0]:val').Val(val1).Should(BeEqualTo(28));
 
       Its('role[0]:Verify[0]:status').Val(role1.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
       Its('role[1]:Verify[0]:status').Val(role2.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-      role1.DoInvoke(val1);
-      role2.DoInvoke(val2);
+      role1.DoInvoke(invoker.Method, val1);
+      role2.DoInvoke(invoker.Method, val2);
 
       Its('Invoker:roles[0]:val').Val(val1).Should(BeEqualTo(28));
 
       Its('role[0]:Verify[1]:status').Val(role1.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
       Its('role[1]:Verify[1]:status').Val(role2.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-      role1.DoInvoke(val1);
-      role2.DoInvoke(val2);
+      role1.DoInvoke(invoker.Method, val1);
+      role2.DoInvoke(invoker.Method, val2);
 
       Its('Invoker:roles[0]:val').Val(val1).Should(BeEqualTo(28));
 
@@ -173,7 +169,6 @@ begin
       invoker: TMockInvoker;
       role: IMockRole;
       val: TValue;
-      res: TVerifyResult;
     begin
       count := 0;
 
@@ -198,23 +193,19 @@ begin
 
       role := invoker.Roles[0];
 
-      role.DoInvoke(val);
+      role.DoInvoke(invoker.Method, val);
 
       Its('Invoker:roles[0]:val').Val(val).Should(BeEqualTo(TValue.Empty));
       Its('count').val(count).Should(BeEqualTo(42));
 
-      res := role.Verify;
+      Its('Verify:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-      Its('Verify:status').Val(res.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
-
-      role.DoInvoke(val);
+      role.DoInvoke(invoker.Method, val);
 
       Its('Invoker:roles[0]:val').Val(val).Should(BeEqualTo(TValue.Empty));
       Its('count').val(count).Should(BeEqualTo(84));
 
-      res := role.Verify;
-
-      Its('Verify:status').Val(res.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Verify:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;
@@ -250,13 +241,13 @@ begin
       Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
       Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(2));
       Its('Invoker:roles[0]'    ).Val(TObject(invoker.Roles[0]).ClassType).Should(BeEqualTo(TMethodSetupRole));
-      Its('Invoker:roles[1]'    ).Val(TObject(invoker.Roles[1]).ClassType).Should(BeEqualTo(TExpectRole));
+      Its('Invoker:roles[1]'    ).Val(TObject(invoker.Roles[1]).ClassType).Should(BeEqualTo(TCountExpectRole));
 
       role1 := invoker.Roles[0];
       role2 := invoker.Roles[1];
 
-      role1.DoInvoke(val1);
-      role2.DoInvoke(val2);
+      role1.DoInvoke(invoker.Method, val1);
+      role2.DoInvoke(invoker.Method, val2);
 
       Its('Invoker:roles[0]:val').Val(val1).Should(BeEqualTo(TValue.Empty));
       Its('count').val(count).Should(BeEqualTo(42));
@@ -264,8 +255,8 @@ begin
       Its('role[0]:Verify[0]:status').Val(role1.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
       Its('role[1]:Verify[0]:status').Val(role2.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-      role1.DoInvoke(val1);
-      role2.DoInvoke(val2);
+      role1.DoInvoke(invoker.Method, val1);
+      role2.DoInvoke(invoker.Method, val2);
 
       Its('Invoker:roles[0]:val').Val(val1).Should(BeEqualTo(TValue.Empty));
       Its('count').val(count).Should(BeEqualTo(84));
@@ -273,8 +264,8 @@ begin
       Its('role[0]:Verify[1]:status').Val(role1.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
       Its('role[1]:Verify[1]:status').Val(role2.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-      role1.DoInvoke(val1);
-      role2.DoInvoke(val2);
+      role1.DoInvoke(invoker.Method, val1);
+      role2.DoInvoke(invoker.Method, val2);
 
       Its('Invoker:roles[0]:val').Val(val1).Should(BeEqualTo(TValue.Empty));
       Its('count').val(count).Should(BeEqualTo(126));
@@ -294,7 +285,6 @@ begin
       invoker: TMockInvoker;
       role: IMockRole;
       val: TValue;
-      res: TVerifyResult;
     begin
       when1 := setup.WillRaise(
         function: Exception
@@ -318,26 +308,22 @@ begin
       Its('Will raise').Call(
         procedure
         begin
-          role.DoInvoke(val);
+          role.DoInvoke(invoker.Method, val);
         end
       )
       .Should(BeThrowenException(Exception, 'Error Raised'));
 
-      res := role.Verify;
-
-      Its('Verify:status').Val(res.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Verify:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       Its('Will raise').Call(
         procedure
         begin
-          role.DoInvoke(val);
+          role.DoInvoke(invoker.Method, val);
         end
       )
       .Should(BeThrowenException(Exception, 'Error Raised'));
 
-      res := role.Verify;
-
-      Its('Verify:status').Val(res.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Verify:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;

@@ -9,14 +9,14 @@ uses
 
 
 type
-  TExpectRole = class(TInterfacedObject, IMockRole)
+  TCountExpectRole = class(TInterfacedObject, IMockRole)
   private
     FCount: integer;
     FVerifire: TPredicate<integer>;
     FReportProvider: TFunc<integer, string>;
   protected
     { IMockRole }
-    procedure DoInvoke(var outResult: TValue);
+    procedure DoInvoke(const method: TRttiMEthod; var outResult: TValue);
     function Verify: TVerifyResult;
   public
     constructor Create(const verifire: TPredicate<integer>; const provider: TFunc<integer, string>);
@@ -25,15 +25,15 @@ type
   TAbstractSetupRole<T> = class abstract(TInterfacedObject, IMockRole)
   private
     FInvoked: boolean;
-    FProvider: TFunc<T>;
+    FProvider: TFunc<TRttiMEthod, T>;
   protected
     procedure DoInvokeInternal(const willReturn: T; var outResult: TValue); virtual; abstract;
   protected
     { IMockRole }
-    procedure DoInvoke(var outResult: TValue);
+    procedure DoInvoke(const method: TRttiMEthod; var outResult: TValue);
     function Verify: TVerifyResult;
   public
-    constructor Create(const provider: TFunc<T>);
+    constructor Create(const provider: TFunc<TRttiMEthod, T>);
   end;
 
   TMethodSetupRole = class(TAbstractSetupRole<TValue>)
@@ -53,6 +53,12 @@ type
     FBuilder: IRoleInvokerBuilder<T>;
   protected
     { IExpect<T> }
+    function Once : IWhen<T>;
+    function Never : IWhen<T>;
+    function AtLeastOnce : IWhen<T>;
+    function AtLeast(const times : integer) : IWhen<T>;
+    function AtMost(const times : integer) : IWhen<T>;
+    function Between(const a, b : integer) : IWhen<T>;
     function Exactly(const times: integer): IWhen<T>;
   public
     constructor Create(const builder: IRoleInvokerBuilder<T>);
@@ -151,7 +157,7 @@ uses
 
 { TExpectRole }
 
-constructor TExpectRole.Create(const verifire: TPredicate<integer>; const provider: TFunc<integer, string>);
+constructor TCountExpectRole.Create(const verifire: TPredicate<integer>; const provider: TFunc<integer, string>);
 begin
   System.Assert(Assigned(verifire));
   System.Assert(Assigned(provider));
@@ -160,12 +166,12 @@ begin
   FReportProvider := provider;
 end;
 
-procedure TExpectRole.DoInvoke(var outResult: TValue);
+procedure TCountExpectRole.DoInvoke(const method: TRttiMEthod; var outResult: TValue);
 begin
   TInterlocked.Increment(FCount);
 end;
 
-function TExpectRole.Verify: TVerifyResult;
+function TCountExpectRole.Verify: TVerifyResult;
 begin
   if FVerifire(FCount) then begin
     Result := TVerifyResult.Create('');
@@ -177,18 +183,18 @@ end;
 
 { TAbstractSetupRole<T> }
 
-constructor TAbstractSetupRole<T>.Create(const provider: TFunc<T>);
+constructor TAbstractSetupRole<T>.Create(const provider: TFunc<TRttiMEthod, T>);
 begin
   System.Assert(Assigned(provider));
 
   FProvider := provider;
 end;
 
-procedure TAbstractSetupRole<T>.DoInvoke(var outResult: TValue);
+procedure TAbstractSetupRole<T>.DoInvoke(const method: TRttiMEthod; var outResult: TValue);
 begin
   FInvoked := true;
 
-  DoInvokeInternal(FProvider(), outResult);
+  DoInvokeInternal(FProvider(method), outResult);
 end;
 
 function TAbstractSetupRole<T>.Verify: TVerifyResult;
@@ -224,9 +230,39 @@ begin
   FBuilder := builder;
 end;
 
+function TExpect<T>.AtLeast(const times: integer): IWhen<T>;
+begin
+  System.Assert(false, '–¢ŽÀ‘•');
+end;
+
+function TExpect<T>.AtLeastOnce: IWhen<T>;
+begin
+  System.Assert(false, '–¢ŽÀ‘•');
+end;
+
+function TExpect<T>.AtMost(const times: integer): IWhen<T>;
+begin
+  System.Assert(false, '–¢ŽÀ‘•');
+end;
+
+function TExpect<T>.Never: IWhen<T>;
+begin
+  System.Assert(false, '–¢ŽÀ‘•');
+end;
+
+function TExpect<T>.Once: IWhen<T>;
+begin
+  System.Assert(false, '–¢ŽÀ‘•');
+end;
+
+function TExpect<T>.Between(const a, b: integer): IWhen<T>;
+begin
+  System.Assert(false, '–¢ŽÀ‘•');
+end;
+
 function TExpect<T>.Exactly(const times: integer): IWhen<T>;
 begin
-  FBuilder.PushRole(TExpectRole.Create(
+  FBuilder.PushRole(TCountExpectRole.Create(
     function (count: integer): boolean
     begin
       Result := count = times;
@@ -441,7 +477,12 @@ end;
 
 function TMockSetup<T>.WillExecute(const fn: TFunc<TValue>): IWhenOrExpect<T>;
 begin
-  FBuilder.PushRole(TMethodSetupRole.Create(fn));
+  FBuilder.PushRole(TMethodSetupRole.Create(
+    function (method: TRttiMethod): TValue
+    begin
+      Result := fn();
+    end
+  ));
 
   Result := TWhen<T>.Create(FBuilder);
 end;
@@ -461,7 +502,12 @@ end;
 function TMockSetup<T>.WillRaise(
   const provider: TFunc<Exception>): IWhen<T>;
 begin
-  FBuilder.PushRole(TExceptionSetupRole.Create(provider));
+  FBuilder.PushRole(TExceptionSetupRole.Create(
+    function (method: TRttiMethod): Exception
+    begin
+      Result := provider();
+    end
+  ));
 
   Result := TWhen<T>.Create(FBuilder);
 end;

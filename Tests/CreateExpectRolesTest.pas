@@ -50,7 +50,7 @@ begin
   when := expect.Exactly(2);
 
   Its('Roles:Length').Val(Length(builder.Roles)).Should(BeEqualTo(1));
-  Its('Roles[0]').Val(TObject(builder.Roles[0]).ClassType).Should(BeEqualTo(TExpectRole));
+  Its('Roles[0]').Val(TObject(builder.Roles[0]).ClassType).Should(BeEqualTo(TCountExpectRole));
 
   role := builder.Roles[0];
 

@@ -22,6 +22,12 @@ type
   end;
 
   IExpect<T> = interface
+    function Once : IWhen<T>;
+    function Never : IWhen<T>;
+    function AtLeastOnce : IWhen<T>;
+    function AtLeast(const times : integer) : IWhen<T>;
+    function AtMost(const times : integer) : IWhen<T>;
+    function Between(const a, b : integer) : IWhen<T>;
     function Exactly(const times: integer): IWhen<T>;
   end;
 

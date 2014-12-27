@@ -68,13 +68,13 @@ end;
 
 type
   TDummyRole = class(TInterfacedObject, IMockRole)
-    procedure DoInvoke(var outResult: TValue);
+    procedure DoInvoke(const method: TRttiMEthod; var outResult: TValue);
     function Verify: TVerifyResult;
   end;
 
 { TDummyRole }
 
-procedure TDummyRole.DoInvoke(var outResult: TValue);
+procedure TDummyRole.DoInvoke(const method: TRttiMEthod; var outResult: TValue);
 begin
 
 end;

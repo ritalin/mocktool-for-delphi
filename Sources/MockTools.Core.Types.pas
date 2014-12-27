@@ -22,7 +22,7 @@ type
   end;
 
   IMockRole = interface
-    procedure DoInvoke(var outResult: TValue);
+    procedure DoInvoke(const methodName: TRttiMEthod; var outResult: TValue);
     function Verify: TVerifyResult;
   end;
 
