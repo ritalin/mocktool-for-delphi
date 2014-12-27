@@ -285,7 +285,20 @@ end;
 
 function TExpect<T>.Between(const a, b: integer): IWhen<T>;
 begin
-  System.Assert(false, '–¢ŽÀ‘•');
+  FBuilder.PushRole(TCountExpectRole.Create(
+    function (count: integer): boolean
+    begin
+      Result := (count >= a) and (count <= b);
+    end,
+
+    function (count: integer): string
+    begin
+      Result := Format('It must be called between %d and %d (actual: %d)', [a, b, count]);
+    end
+  ));
+
+  Result := TWhen<T>.Create(FBuilder);
+
 end;
 
 function TExpect<T>.Exactly(const times: integer): IWhen<T>;
