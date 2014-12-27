@@ -9,7 +9,7 @@ uses
 type
 
   [TestFixture]
-  _CreateSetup_Test = class(TObject)
+  _Create_Setup_Roles = class(TObject)
   private
     procedure TestImpl(const proc: TProc<IMockSetup<TCounterObject>, IActionStorage>);
   public
@@ -42,7 +42,7 @@ end;
 
 { _CreateSetup_Test }
 
-procedure _CreateSetup_Test.TestImpl(
+procedure _Create_Setup_Roles.TestImpl(
   const proc: TProc<IMockSetup<TCounterObject>, IActionStorage>);
 var
   proxy: IRecordProxy<TCounterObject>;
@@ -64,7 +64,7 @@ begin
   Its('Now Recording').Val(proxy.Recording).Should(not BeTrue);
 end;
 
-procedure _CreateSetup_Test._Setup_As_WillReturn;
+procedure _Create_Setup_Roles._Setup_As_WillReturn;
 begin
   TestImpl(
     procedure (setup: IMockSetup<TCounterObject>; storage: IActionStorage)
@@ -108,7 +108,7 @@ begin
   );
 end;
 
-procedure _CreateSetup_Test._Setup_As_WillReturn_With_Expect;
+procedure _Create_Setup_Roles._Setup_As_WillReturn_With_Expect;
 begin
   TestImpl(
     procedure (setup: IMockSetup<TCounterObject>; storage: IActionStorage)
@@ -163,7 +163,7 @@ begin
   );
 end;
 
-procedure _CreateSetup_Test._Setup_As_WillExecute;
+procedure _Create_Setup_Roles._Setup_As_WillExecute;
 begin
   TestImpl(
     procedure (setup: IMockSetup<TCounterObject>; storage: IActionStorage)
@@ -219,7 +219,7 @@ begin
   );
 end;
 
-procedure _CreateSetup_Test._Setup_As_WillExecute_With_Expect;
+procedure _Create_Setup_Roles._Setup_As_WillExecute_With_Expect;
 begin
   TestImpl(
     procedure (setup: IMockSetup<TCounterObject>; storage: IActionStorage)
@@ -285,7 +285,7 @@ begin
   );
 end;
 
-procedure _CreateSetup_Test._Setup_As_WillRaise;
+procedure _Create_Setup_Roles._Setup_As_WillRaise;
 begin
   TestImpl(
     procedure (setup: IMockSetup<TCounterObject>; storage: IActionStorage)

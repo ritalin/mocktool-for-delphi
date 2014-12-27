@@ -14,7 +14,8 @@ uses
   ObjectRecordingProxyTest in 'ObjectRecordingProxyTest.pas',
   MockTools.Core.Types in '..\Sources\MockTools.Core.Types.pas',
   CreateSetupTest in 'CreateSetupTest.pas',
-  MockTarget in 'MockTarget.pas';
+  MockTarget in 'MockTarget.pas',
+  CreateExpectRolesTest in 'CreateExpectRolesTest.pas';
 
 var
   runner : ITestRunner;
@@ -33,7 +34,8 @@ begin
     runner.AddLogger(nunitLogger);
 
     TDUnitX.RegisterTestFixture(_RecordProxy_Test);
-    TDUnitX.RegisterTestFixture(_CreateSetup_Test);
+    TDUnitX.RegisterTestFixture(_Create_Setup_Roles);
+    TDUnitX.RegisterTestFixture(_Create_Expect_Roles);
 
     //Run tests
     results := runner.Execute;
