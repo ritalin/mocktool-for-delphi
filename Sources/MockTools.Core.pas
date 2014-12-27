@@ -256,7 +256,7 @@ end;
 
 function TExpect<T>.Once: IWhen<T>;
 begin
-  System.Assert(false, '–¢ŽÀ‘•');
+  Result := Self.Exactly(1);
 end;
 
 function TExpect<T>.Between(const a, b: integer): IWhen<T>;

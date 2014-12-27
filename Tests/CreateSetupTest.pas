@@ -28,18 +28,6 @@ uses
   Should, Should.Constraint.CoreMatchers
 ;
 
-type
-  TVerifyResultStatusHelpeer = record helper for TVerifyResult.TStatus
-    function AsTValue: TValue;
-  end;
-
-{ TVerifyResultStatusHelpeer }
-
-function TVerifyResultStatusHelpeer.AsTValue: TValue;
-begin
-  Result := TValue.From<TVerifyResult.TStatus>(Self);
-end;
-
 { _CreateSetup_Test }
 
 procedure _Create_Setup_Roles.TestImpl(

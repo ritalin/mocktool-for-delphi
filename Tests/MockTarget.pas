@@ -3,7 +3,8 @@ unit MockTarget;
 interface
 
 uses
-  System.SysUtils, System.Rtti
+  System.SysUtils, System.Rtti,
+  MockTools.Core.Types
 ;
 
 type
@@ -14,6 +15,10 @@ type
     procedure CountUp; virtual;
     function CallCount: integer; virtual;
     function SomeFunc(const n: integer; const s: string): string;
+  end;
+
+  TVerifyResultStatusHelpeer = record helper for TVerifyResult.TStatus
+    function AsTValue: TValue;
   end;
 
 implementation
@@ -33,6 +38,13 @@ end;
 function TCounterObject.SomeFunc(const n: integer; const s: string): string;
 begin
   Result := Format('%d-%s', [n, s]);
+end;
+
+{ TVerifyResultStatusHelpeer }
+
+function TVerifyResultStatusHelpeer.AsTValue: TValue;
+begin
+  Result := TValue.From<TVerifyResult.TStatus>(Self);
 end;
 
 end.
