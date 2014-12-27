@@ -3,38 +3,40 @@ unit CreateExpectRolesTest;
 interface
 
 uses
+  System.SysUtils,
   DUnitX.TestFramework,
-  MockTarget
+  MockTarget, MockTools.Mocks, MockTools.Core.Types
 ;
 
 type
 
   [TestFixture]
   _Create_Expect_Roles = class(TObject)
+  private
+    procedure TestImpl(
+      const proc: TProc<IMockExpect<TCounterObject>, IActionStorage>);
   public
     [Test] procedure _Create_Exactly;
+    [Test] procedure _Create_Once;
   end;
 
 implementation
 
 uses
-  System.SysUtils, System.Rtti,
+  System.Rtti,
   Should, Should.Constraint.CoreMatchers,
-  MockTools.Mocks, MockTools.Core, MockTools.Core.Types
+  MockTools.Core
 ;
 
 { _Create_Expect_Roles }
 
-procedure _Create_Expect_Roles._Create_Exactly;
+procedure _Create_Expect_Roles.TestImpl(
+  const proc: TProc<IMockExpect<TCounterObject>, IActionStorage>);
 var
   proxy: IRecordProxy<TCounterObject>;
   strage: IActionStorage;
   builder: IRoleInvokerBuilder<TCounterObject>;
-  expect: IExpect<TCounterObject>;
-  when: IWhen<TCounterObject>;
-
-  role: IMockRole;
-  invoker: TMockInvoker;
+  expect: IMockExpect<TCounterObject>;
 begin
   proxy := TObjectRecordProxy<TCounterObject>.Create;
   strage := TActionStorage.Create;
@@ -47,24 +49,41 @@ begin
   Its('Roles:Length').Val(Length(builder.Roles)).Should(BeEqualTo(0));
   Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(0));
 
-  when := expect.Exactly(2);
-
-  Its('Roles:Length').Val(Length(builder.Roles)).Should(BeEqualTo(1));
-  Its('Roles[0]').Val(TObject(builder.Roles[0]).ClassType).Should(BeEqualTo(TCountExpectRole));
-
-  role := builder.Roles[0];
-
-  when.When.CallCount;
+  proc(expect, strage);
 
   Its('Now Recording').Val(proxy.Recording).Should(not BeTrue);
-  Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+end;
 
-  invoker := strage.Actions[0];
+procedure _Create_Expect_Roles._Create_Exactly;
+begin
+  Self.TestImpl(
+    procedure (expect: IMockExpect<TCounterObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+    begin
+      expect.Exactly(2)
+      .When.CallCount;
 
-  Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('CallCount'));
-  Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
-  Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
-  Its('Invoker:roles[0]'    ).Val(invoker.Roles[0]).Should(BeEqualTo(TValue.From<IMockRole>(role)));
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('CallCount'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Invoker:roles[0]'    ).Val(invoker.Roles[0]).Should(BeEqualTo(TValue.From<IMockRole>(role)));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_Once;
+begin
+
 end;
 
 initialization
