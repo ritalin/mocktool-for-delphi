@@ -236,17 +236,41 @@ end;
 
 function TExpect<T>.AtLeast(const times: integer): IWhen<T>;
 begin
-  System.Assert(false, '–¢ŽÀ‘•');
+  FBuilder.PushRole(TCountExpectRole.Create(
+    function (count: integer): boolean
+    begin
+      Result := count >= times;
+    end,
+
+    function (count: integer): string
+    begin
+      Result := Format('At least, %d times must be called (actual: %d)', [times, count]);
+    end
+  ));
+
+  Result := TWhen<T>.Create(FBuilder);
 end;
 
 function TExpect<T>.AtLeastOnce: IWhen<T>;
 begin
-  System.Assert(false, '–¢ŽÀ‘•');
+  Result := Self.AtLeast(1);
 end;
 
 function TExpect<T>.AtMost(const times: integer): IWhen<T>;
 begin
-  System.Assert(false, '–¢ŽÀ‘•');
+  FBuilder.PushRole(TCountExpectRole.Create(
+    function (count: integer): boolean
+    begin
+      Result := count <= times;
+    end,
+
+    function (count: integer): string
+    begin
+      Result := Format('It must be called greater than %d times (actual: %d)', [times, count]);
+    end
+  ));
+
+  Result := TWhen<T>.Create(FBuilder);
 end;
 
 function TExpect<T>.Never: IWhen<T>;

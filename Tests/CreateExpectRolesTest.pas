@@ -19,6 +19,9 @@ type
     [Test] procedure _Create_Exactly;
     [Test] procedure _Create_Once;
     [Test] procedure _Create_Never;
+    [Test] procedure _Create_At_Least;
+    [Test] procedure _Create_At_Least_Once;
+    [Test] procedure _Create_At_Most;
   end;
 
 implementation
@@ -167,6 +170,126 @@ begin
       role.DoInvoke(invoker.Method, val);
 
       Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_At_Least;
+begin
+  Self.TestImpl(
+    procedure (expect: IMockExpect<TCounterObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      expect.AtLeast(2)
+      .When.CallCount;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('CallCount'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Invoker:roles[0]'    ).Val(invoker.Roles[0]).Should(BeEqualTo(TValue.From<IMockRole>(role)));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_At_Least_Once;
+begin
+  Self.TestImpl(
+    procedure (expect: IMockExpect<TCounterObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      expect.AtLeastOnce
+      .When.CallCount;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('CallCount'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Invoker:roles[0]'    ).Val(invoker.Roles[0]).Should(BeEqualTo(TValue.From<IMockRole>(role)));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_At_Most;
+begin
+  Self.TestImpl(
+    procedure (expect: IMockExpect<TCounterObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      expect.AtMost(2)
+      .When.CallCount;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('CallCount'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Invoker:roles[0]'    ).Val(invoker.Roles[0]).Should(BeEqualTo(TValue.From<IMockRole>(role)));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
