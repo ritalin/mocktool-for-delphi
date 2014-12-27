@@ -251,7 +251,7 @@ end;
 
 function TExpect<T>.Never: IWhen<T>;
 begin
-  System.Assert(false, '–¢ŽÀ‘•');
+  Result := Self.Exactly(0);
 end;
 
 function TExpect<T>.Once: IWhen<T>;
