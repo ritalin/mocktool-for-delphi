@@ -48,7 +48,7 @@ type
     procedure DoInvokeInternal(const willReturn: Exception; var outResult: TValue); override;
   end;
 
-  TExpect<T> = class(TInterfacedObject, IExpect<T>)
+  TExpect<T> = class(TInterfacedObject, IMockExpect<T>)
   private
     FBuilder: IRoleInvokerBuilder<T>;
   protected
@@ -60,6 +60,10 @@ type
     function AtMost(const times : integer) : IWhen<T>;
     function Between(const a, b : integer) : IWhen<T>;
     function Exactly(const times: integer): IWhen<T>;
+    function Before(const AMethodName : string) : IWhen<T>;
+    function BeforeOnce(const AMethodName : string) : IWhen<T>;
+    function After(const AMethodName : string) : IWhen<T>;
+    function AfterOnce(const AMethodName : string) : IWhen<T>;
   public
     constructor Create(const builder: IRoleInvokerBuilder<T>);
   end;
@@ -72,7 +76,7 @@ type
     function GetSubject: T;
   protected
     { IWhenOrExpect<T> }
-    function GetExprct: IExpect<T>;
+    function GetExprct: IMockExpect<T>;
   public
     constructor Create(const builder: IRoleInvokerBuilder<T>);
   end;
@@ -277,6 +281,26 @@ begin
   Result := TWhen<T>.Create(FBuilder);
 end;
 
+function TExpect<T>.Before(const AMethodName: string): IWhen<T>;
+begin
+  System.Assert(false, '–¢ŽÀ‘•');
+end;
+
+function TExpect<T>.BeforeOnce(const AMethodName: string): IWhen<T>;
+begin
+  System.Assert(false, '–¢ŽÀ‘•');
+end;
+
+function TExpect<T>.After(const AMethodName: string): IWhen<T>;
+begin
+  System.Assert(false, '–¢ŽÀ‘•');
+end;
+
+function TExpect<T>.AfterOnce(const AMethodName: string): IWhen<T>;
+begin
+  System.Assert(false, '–¢ŽÀ‘•');
+end;
+
 { TWhen<T> }
 
 constructor TWhen<T>.Create(const builder: IRoleInvokerBuilder<T>);
@@ -284,7 +308,7 @@ begin
   FBuilder := builder;
 end;
 
-function TWhen<T>.GetExprct: IExpect<T>;
+function TWhen<T>.GetExprct: IMockExpect<T>;
 begin
   Result := TExpect<T>.Create(FBuilder);
 end;

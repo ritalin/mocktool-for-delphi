@@ -8,7 +8,7 @@ uses
 
 type
   IWhen<T> = interface;
-  IExpect<T> = interface;
+  IMockExpect<T> = interface;
   IMockSetup<T> = interface;
 
   TMock<T> = record
@@ -21,7 +21,7 @@ type
     property When: T read GetSubject;
   end;
 
-  IExpect<T> = interface
+  IMockExpect<T> = interface
     function Once : IWhen<T>;
     function Never : IWhen<T>;
     function AtLeastOnce : IWhen<T>;
@@ -29,12 +29,16 @@ type
     function AtMost(const times : integer) : IWhen<T>;
     function Between(const a, b : integer) : IWhen<T>;
     function Exactly(const times: integer): IWhen<T>;
+    function Before(const AMethodName : string) : IWhen<T>;
+    function BeforeOnce(const AMethodName : string) : IWhen<T>;
+    function After(const AMethodName : string) : IWhen<T>;
+    function AfterOnce(const AMethodName : string) : IWhen<T>;
   end;
 
   IWhenOrExpect<T> = interface(IWhen<T>)
-    function GetExprct: IExpect<T>;
+    function GetExprct: IMockExpect<T>;
 
-    property Expect: IExpect<T> read GetExprct;
+    property Expect: IMockExpect<T> read GetExprct;
   end;
 
   IMockSetup<T> = interface
