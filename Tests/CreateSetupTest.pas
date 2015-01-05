@@ -4,7 +4,7 @@ interface
 uses
   System.SysUtils,
   DUnitX.TestFramework,
-  MockTarget, MockTools.Mocks, MockTools.Core.Types;
+  MockTarget, MockTools.Core.Types;
 
 type
 
@@ -24,7 +24,7 @@ implementation
 
 uses
   System.Rtti,
-  MockTools.Core,
+  MockTools.Core, MockTools.Mocks.CoreExpect,
   Should, Should.Constraint.CoreMatchers
 ;
 
@@ -103,7 +103,7 @@ begin
     begin
       when1 := setup.WillReturn(28);
       when1
-        .Expect.Exactly(2)
+        .Expect(Exactly(2))
         .When.CallCount;
 
       Its('Actions:Length').Val(Length(storage.Actions)).Should(BeEqualTo(1));
@@ -217,7 +217,7 @@ begin
           count := count + 42;
         end
       )
-      .Expect.Exactly(3)
+      .Expect(Exactly(3))
       .When.CountUp;
 
       Its('Actions:Length').Val(Length(storage.Actions)).Should(BeEqualTo(1));

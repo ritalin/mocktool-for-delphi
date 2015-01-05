@@ -14,7 +14,7 @@ type
   _Create_Expect_Roles = class(TObject)
   private
     procedure TestImpl<T: class>(
-      const proc: TProc<IMockExpect<T>, IActionStorage>);
+      const proc: TProc<IWhenOrExpect<T>, IActionStorage>);
   public
     [Test] procedure _Create_Exactly;
     [Test] procedure _Create_Once;
@@ -33,25 +33,25 @@ implementation
 
 uses
   System.Rtti,
-  Should, Should.Constraint.CoreMatchers,
-  MockTools.Core
+  MockTools.Mocks.CoreExpect, MockTools.Core,
+  Should, Should.Constraint.CoreMatchers
 ;
 
 { _Create_Expect_Roles }
 
 procedure _Create_Expect_Roles.TestImpl<T>(
-  const proc: TProc<IMockExpect<T>, IActionStorage>);
+  const proc: TProc<IWhenOrExpect<T>, IActionStorage>);
 var
   proxy: IRecordProxy<T>;
   strage: IActionStorage;
   builder: IRoleInvokerBuilder<T>;
-  expect: IMockExpect<T>;
+  expect: IWhenOrExpect<T>;
 begin
   proxy := TObjectRecordProxy<T>.Create;
   strage := TActionStorage.Create;
 
   builder := TRoleInvokerBuilder<T>.Create(proxy, strage);
-  expect := TExpect<T>.Create(builder);
+  expect := TWhen<T>.Create(builder);
 
   Its('Now Recording').Val(proxy.Recording).Should(BeTrue);
 
@@ -66,13 +66,14 @@ end;
 procedure _Create_Expect_Roles._Create_Exactly;
 begin
   Self.TestImpl<TCounterObject>(
-    procedure (expect: IMockExpect<TCounterObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IActionStorage)
     var
       role: IMockRole;
       invoker: TMockInvoker;
       val: TValue;
     begin
-      expect.Exactly(2)
+      mock
+      .Expect(Exactly(2))
       .When.CallCount;
 
       Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
@@ -105,13 +106,14 @@ end;
 procedure _Create_Expect_Roles._Create_Once;
 begin
   Self.TestImpl<TCounterObject>(
-    procedure (expect: IMockExpect<TCounterObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IActionStorage)
     var
       role: IMockRole;
       invoker: TMockInvoker;
       val: TValue;
     begin
-      expect.Once
+      mock
+      .Expect(Once)
       .When.CallCount;
 
       Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
@@ -144,13 +146,14 @@ end;
 procedure _Create_Expect_Roles._Create_Never;
 begin
   Self.TestImpl<TCounterObject>(
-    procedure (expect: IMockExpect<TCounterObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IActionStorage)
     var
       role: IMockRole;
       invoker: TMockInvoker;
       val: TValue;
     begin
-      expect.Never
+      mock
+      .Expect(Never)
       .When.CallCount;
 
       Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
@@ -183,13 +186,14 @@ end;
 procedure _Create_Expect_Roles._Create_At_Least;
 begin
   Self.TestImpl<TCounterObject>(
-    procedure (expect: IMockExpect<TCounterObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IActionStorage)
     var
       role: IMockRole;
       invoker: TMockInvoker;
       val: TValue;
     begin
-      expect.AtLeast(2)
+      mock
+      .Expect(AtLeast(2))
       .When.CallCount;
 
       Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
@@ -222,13 +226,14 @@ end;
 procedure _Create_Expect_Roles._Create_At_Least_Once;
 begin
   Self.TestImpl<TCounterObject>(
-    procedure (expect: IMockExpect<TCounterObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IActionStorage)
     var
       role: IMockRole;
       invoker: TMockInvoker;
       val: TValue;
     begin
-      expect.AtLeastOnce
+      mock
+      .Expect(AtLeastOnce)
       .When.CallCount;
 
       Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
@@ -261,13 +266,14 @@ end;
 procedure _Create_Expect_Roles._Create_At_Most;
 begin
   Self.TestImpl<TCounterObject>(
-    procedure (expect: IMockExpect<TCounterObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IActionStorage)
     var
       role: IMockRole;
       invoker: TMockInvoker;
       val: TValue;
     begin
-      expect.AtMost(2)
+      mock
+      .Expect(AtMost(2))
       .When.CallCount;
 
       Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
@@ -300,13 +306,14 @@ end;
 procedure _Create_Expect_Roles._Create_Between;
 begin
   Self.TestImpl<TCounterObject>(
-    procedure (expect: IMockExpect<TCounterObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IActionStorage)
     var
       role: IMockRole;
       invoker: TMockInvoker;
       val: TValue;
     begin
-      expect.Between(1, 3)
+      mock
+      .Expect(Between(1, 3))
       .When.CallCount;
 
       Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
@@ -392,13 +399,14 @@ end;
 procedure _Create_Expect_Roles._Create_BeforeOnce_NoCall;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (expect: IMockExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
     var
       role: IMockRole;
       invoker: TMockInvoker;
       val: TValue;
     begin
-      expect.BeforeOnce('SetupOnce')
+      mock
+      .Expect(BeforeOnce('SetupOnce'))
       .When.Execute;
 
       Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
@@ -423,13 +431,14 @@ end;
 procedure _Create_Expect_Roles._Create_BeforeOnce_Valid;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (expect: IMockExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
     var
       role: IMockRole;
       invoker: TMockInvoker;
       val: TValue;
     begin
-      expect.BeforeOnce('SetupOnce')
+      mock
+      .Expect(BeforeOnce('SetupOnce'))
       .When.Execute;
 
       Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
@@ -457,13 +466,14 @@ end;
 procedure _Create_Expect_Roles._Create_BeforeOnce_OverCalled;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (expect: IMockExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
     var
       role: IMockRole;
       invoker: TMockInvoker;
       val: TValue;
     begin
-      expect.BeforeOnce('SetupOnce')
+      mock
+      .Expect(BeforeOnce('SetupOnce'))
       .When.Execute;
 
       Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
@@ -492,13 +502,14 @@ end;
 procedure _Create_Expect_Roles._Create_BeforeOnce_OverCalled_2;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (expect: IMockExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
     var
       role: IMockRole;
       invoker: TMockInvoker;
       val: TValue;
     begin
-      expect.BeforeOnce('SetupOnce')
+      mock
+      .Expect(BeforeOnce('SetupOnce'))
       .When.Execute;
 
       Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));

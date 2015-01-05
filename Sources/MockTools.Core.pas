@@ -19,11 +19,12 @@ type
     procedure DoInvoke(const method: TRttiMethod; var outResult: TValue);
     function Verify: TVerifyResult;
   public
-    constructor Create(const verifire: TPredicate<integer>; const provider: TFunc<integer, string>);
+    function OnVerify(const verifire: TPredicate<integer>): TCountExpectRole;
+    function OnErrorReport(const provider: TFunc<integer, string>): TCountExpectRole;
   end;
 
   TMethodCallExpectRole = class(TInterfacedObject, IMockRole)
-  private type
+  public type
     TStatus = (NoCall, Called, Failed);
     TVerifyProc = TFunc<integer, integer, TMethodCallExpectRole.TStatus, TMethodCallExpectRole.TStatus>;
   private
@@ -69,24 +70,14 @@ type
     procedure DoInvokeInternal(const willReturn: Exception; var outResult: TValue); override;
   end;
 
-  TExpect<T> = class(TInterfacedObject, IMockExpect<T>)
+  TExpectRoleFactory = class(TInterfacedObject, IMockExpect)
   private
-    FBuilder: IRoleInvokerBuilder<T>;
+    FFactory: TFunc<ICallerInfo, IMockRole>;
   protected
     { IExpect<T> }
-    function Once : IWhen<T>;
-    function Never : IWhen<T>;
-    function AtLeastOnce : IWhen<T>;
-    function AtLeast(const times : integer) : IWhen<T>;
-    function AtMost(const times : integer) : IWhen<T>;
-    function Between(const a, b : integer) : IWhen<T>;
-    function Exactly(const times: integer): IWhen<T>;
-    function Before(const AMethodName : string) : IWhen<T>;
-    function BeforeOnce(const AMethodName : string) : IWhen<T>;
-    function After(const AMethodName : string) : IWhen<T>;
-    function AfterOnce(const AMethodName : string) : IWhen<T>;
+    function CreateRole(const callerInfo: ICallerInfo): IMockRole;
   public
-    constructor Create(const builder: IRoleInvokerBuilder<T>);
+    constructor Create(const factory: TFunc<ICallerInfo, IMockRole>);
   end;
 
   TWhen<T> = class(TInterfacedObject, IWhen<T>, IWhenOrExpect<T>)
@@ -97,7 +88,7 @@ type
     function GetSubject: T;
   protected
     { IWhenOrExpect<T> }
-    function GetExprct: IMockExpect<T>;
+    function Expect(const expect: IMockExpect): IWhen<T>;
   public
     constructor Create(const builder: IRoleInvokerBuilder<T>);
   end;
@@ -128,7 +119,7 @@ type
     { IRoleInvokerBuilder }
     procedure PushRole(const role: IMockRole);
     function GetRoles: TArray<IMockRole>;
-    function GetCallStacks: TList<TRttiMethod>;
+    function GetCallerInfo: ICallerInfo;
     function Build(const method: TRttiMethod; const args: TArray<TValue>): TMockInvoker;
   protected
     { IProxy<T> }
@@ -185,13 +176,22 @@ uses
 
 { TExpectRole }
 
-constructor TCountExpectRole.Create(const verifire: TPredicate<integer>; const provider: TFunc<integer, string>);
+function TCountExpectRole.OnErrorReport(
+  const provider: TFunc<integer, string>): TCountExpectRole;
+begin
+  System.Assert(Assigned(provider));
+  FReportProvider := provider;
+
+  Result := Self;
+end;
+
+function TCountExpectRole.OnVerify(
+  const verifire: TPredicate<integer>): TCountExpectRole;
 begin
   System.Assert(Assigned(verifire));
-  System.Assert(Assigned(provider));
-
   FVerifire := verifire;
-  FReportProvider := provider;
+
+  Result := Self;
 end;
 
 procedure TCountExpectRole.DoInvoke(const method: TRttiMEthod; var outResult: TValue);
@@ -253,157 +253,17 @@ end;
 
 { TExpect<T> }
 
-constructor TExpect<T>.Create(const builder: IRoleInvokerBuilder<T>);
+constructor TExpectRoleFactory.Create(const factory: TFunc<ICallerInfo, IMockRole>);
 begin
-  FBuilder := builder;
+  Assert(Assigned(factory));
+
+  FFactory := factory;
 end;
 
-function TExpect<T>.AtLeast(const times: integer): IWhen<T>;
+function TExpectRoleFactory.CreateRole(
+  const callerInfo: ICallerInfo): IMockRole;
 begin
-  FBuilder.PushRole(TCountExpectRole.Create(
-    function (count: integer): boolean
-    begin
-      Result := count >= times;
-    end,
-
-    function (count: integer): string
-    begin
-      Result := Format('At least, %d times must be called (actual: %d)', [times, count]);
-    end
-  ));
-
-  Result := TWhen<T>.Create(FBuilder);
-end;
-
-function TExpect<T>.AtLeastOnce: IWhen<T>;
-begin
-  Result := Self.AtLeast(1);
-end;
-
-function TExpect<T>.AtMost(const times: integer): IWhen<T>;
-begin
-  FBuilder.PushRole(TCountExpectRole.Create(
-    function (count: integer): boolean
-    begin
-      Result := count <= times;
-    end,
-
-    function (count: integer): string
-    begin
-      Result := Format('It must be called greater than %d times (actual: %d)', [times, count]);
-    end
-  ));
-
-  Result := TWhen<T>.Create(FBuilder);
-end;
-
-function TExpect<T>.Never: IWhen<T>;
-begin
-  Result := Self.Exactly(0);
-end;
-
-function TExpect<T>.Once: IWhen<T>;
-begin
-  Result := Self.Exactly(1);
-end;
-
-function TExpect<T>.Between(const a, b: integer): IWhen<T>;
-begin
-  FBuilder.PushRole(TCountExpectRole.Create(
-    function (count: integer): boolean
-    begin
-      Result := (count >= a) and (count <= b);
-    end,
-
-    function (count: integer): string
-    begin
-      Result := Format('It must be called between %d and %d (actual: %d)', [a, b, count]);
-    end
-  ));
-
-  Result := TWhen<T>.Create(FBuilder);
-end;
-
-function TExpect<T>.Exactly(const times: integer): IWhen<T>;
-begin
-  FBuilder.PushRole(TCountExpectRole.Create(
-    function (count: integer): boolean
-    begin
-      Result := count = times;
-    end,
-
-    function (count: integer): string
-    begin
-      Result := Format('Not match call count (expect: %d, actual: %d)', [times, count]);
-    end
-  ));
-
-  Result := TWhen<T>.Create(FBuilder);
-end;
-
-function TExpect<T>.Before(const AMethodName: string): IWhen<T>;
-begin
-  System.Assert(false, '–¢ŽÀ‘•');
-end;
-
-function TExpect<T>.BeforeOnce(const AMethodName: string): IWhen<T>;
-begin
-  FBuilder.PushRole(
-    TMethodCallExpectRole.Create(
-      procedure (indicies: TList<integer>)
-      begin
-        indicies.Add(FBuilder.CallStacks.Count);
-      end,
-
-      procedure (indicies: TList<integer>)
-      begin
-        indicies.Insert(0, 0);
-      end
-    )
-    .OnVerify(
-      function (start, stop: integer; curStatus: TMethodCallExpectRole.TStatus): TMethodCallExpectRole.TStatus
-      var
-        i, count: integer;
-      begin
-        if FBuilder.CallStacks.Count = 0 then Exit(curStatus);
-
-        count := 0;
-        for i := start to stop do begin
-          if FBuilder.CallStacks[i].Name = AMethodName then begin
-            Inc(count);
-          end;
-        end;
-
-        if (curStatus = TMethodCallExpectRole.TStatus.Called) or (count > 1) then begin
-          Result := TMethodCallExpectRole.TStatus.Failed;
-        end
-        else if curStatus = TMethodCallExpectRole.TStatus.NoCall then begin
-          Result := TMethodCallExpectRole.TStatus.Called;
-        end
-        else begin
-          Result := curStatus;
-        end;
-      end
-    )
-    .OnErrorReport(
-      function: string
-      begin
-        Result := Format('Exactly once, a method (%s) must be called', [AMethodName]);
-      end
-    )
-  );
-
-  Result := TWhen<T>.Create(FBuilder);
-end;
-
-function TExpect<T>.After(const AMethodName: string): IWhen<T>;
-begin
-  System.Assert(false, '–¢ŽÀ‘•');
-end;
-
-function TExpect<T>.AfterOnce(const AMethodName: string): IWhen<T>;
-begin
-  System.Assert(false, '–¢ŽÀ‘•');
+  Result := FFactory(callerInfo);
 end;
 
 { TWhen<T> }
@@ -413,9 +273,13 @@ begin
   FBuilder := builder;
 end;
 
-function TWhen<T>.GetExprct: IMockExpect<T>;
+function TWhen<T>.Expect(const expect: IMockExpect): IWhen<T>;
 begin
-  Result := TExpect<T>.Create(FBuilder);
+  Assert(Assigned(expect));
+
+  FBuilder.PushRole(expect.CreateRole(FBuilder.CallerInfo));
+
+  Result := TWhen<T>.Create(FBuilder);
 end;
 
 function TWhen<T>.GetSubject: T;
@@ -449,9 +313,9 @@ begin
   Result := TMockInvoker.Create(method, args, Self.GetRoles);
 end;
 
-function TRoleInvokerBuilder<T>.GetCallStacks: TList<TRttiMethod>;
+function TRoleInvokerBuilder<T>.GetCallerInfo: ICallerInfo;
 begin
-  Result := FActionStorage.Callstacks;
+  Result := FActionStorage;
 end;
 
 function TRoleInvokerBuilder<T>.GetRoles: TArray<IMockRole>;

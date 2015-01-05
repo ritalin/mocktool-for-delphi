@@ -15,7 +15,8 @@ uses
   MockTools.Core.Types in '..\Sources\MockTools.Core.Types.pas',
   CreateSetupTest in 'CreateSetupTest.pas',
   MockTarget in 'MockTarget.pas',
-  CreateExpectRolesTest in 'CreateExpectRolesTest.pas';
+  CreateExpectRolesTest in 'CreateExpectRolesTest.pas',
+  MockTools.Mocks.CoreExpect in '..\Sources\MockTools.Mocks.CoreExpect.pas';
 
 var
   runner : ITestRunner;

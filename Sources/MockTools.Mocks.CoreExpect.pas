@@ -1,0 +1,222 @@
+unit MockTools.Mocks.CoreExpect;
+
+interface
+
+uses
+  SysUtils, System.Generics.Collections,
+  MockTools.Core.Types
+;
+
+function Once : IMockExpect;
+function Never : IMockExpect;
+function AtLeastOnce : IMockExpect;
+function AtLeast(const times : integer) : IMockExpect;
+function AtMost(const times : integer) : IMockExpect;
+function Between(const a, b : integer) : IMockExpect;
+function Exactly(const times: integer): IMockExpect;
+function Before(const AMethodName : string) : IMockExpect;
+function BeforeOnce(const AMethodName : string) : IMockExpect;
+function After(const AMethodName : string) : IMockExpect;
+function AfterOnce(const AMethodName : string) : IMockExpect;
+
+implementation
+
+uses
+  MockTools.Core
+;
+
+{ TExpects }
+
+function Exactly(const times: integer): IMockExpect;
+begin
+  Result := TExpectRoleFactory.Create(
+    function (callerInfo: ICallerInfo): IMockRole
+    begin
+      Result :=
+        TCountExpectRole.Create
+        .OnVerify(
+          function (count: integer): boolean
+          begin
+            Result := count = times;
+          end
+        )
+        .OnErrorReport(
+          function (count: integer): string
+          begin
+            Result := Format('Not match call count (expect: %d, actual: %d)', [times, count]);
+          end
+        );
+    end
+  );
+end;
+
+function Never: IMockExpect;
+begin
+  Result := Exactly(0);
+end;
+
+function Once: IMockExpect;
+begin
+  Result := Exactly(1);
+end;
+
+function AtLeast(const times: integer): IMockExpect;
+begin
+  Result := TExpectRoleFactory.Create(
+    function (callerInfo: ICallerInfo): IMockRole
+    begin
+      Result :=
+        TCountExpectRole.Create
+        .OnVerify(
+          function (count: integer): boolean
+          begin
+            Result := count >= times;
+          end
+        )
+        .OnErrorReport(
+          function (count: integer): string
+          begin
+            Result := Format('At least, %d times must be called (actual: %d)', [times, count]);
+          end
+        );
+    end
+  );
+end;
+
+function AtLeastOnce: IMockExpect;
+begin
+  Result := AtLeast(1);
+end;
+
+function AtMost(const times: integer): IMockExpect;
+begin
+  Result := TExpectRoleFactory.Create(
+    function (callerInfo: ICallerInfo): IMockRole
+    begin
+      Result :=
+        TCountExpectRole.Create
+        .OnVerify(
+          function (count: integer): boolean
+          begin
+            Result := count <= times;
+          end
+        )
+        .OnErrorReport(
+          function (count: integer): string
+          begin
+            Result := Format('It must be called greater than %d times (actual: %d)', [times, count]);
+          end
+        );
+    end
+  );
+end;
+
+function Between(const a, b: integer): IMockExpect;
+begin
+  Result := TExpectRoleFactory.Create(
+    function (callerInfo: ICallerInfo): IMockRole
+    begin
+      Result :=
+        TCountExpectRole.Create
+        .OnVerify(
+          function (count: integer): boolean
+          begin
+            Result := (count >= a) and (count <= b);
+          end
+        )
+        .OnErrorReport(
+          function (count: integer): string
+          begin
+            Result := Format('It must be called between %d and %d (actual: %d)', [a, b, count]);
+          end
+        );
+    end
+  );
+end;
+
+function BeforeOnce(const AMethodName: string): IMockExpect;
+begin
+  Result := TExpectRoleFactory.Create(
+    function (callerInfo: ICallerInfo): IMockRole
+    begin
+      Result :=
+        TMethodCallExpectRole.Create(
+          procedure (indicies: TList<integer>)
+          begin
+            indicies.Add(callerInfo.GetCallStacks.Count);
+          end,
+
+          procedure (indicies: TList<integer>)
+          begin
+            indicies.Insert(0, 0);
+          end
+        )
+        .OnVerify(
+          function (start, stop: integer; curStatus: TMethodCallExpectRole.TStatus): TMethodCallExpectRole.TStatus
+          var
+            i, count: integer;
+          begin
+            if callerInfo.GetCallStacks.Count = 0 then Exit(curStatus);
+
+            count := 0;
+            for i := start to stop do begin
+              if callerInfo.GetCallStacks[i].Name = AMethodName then begin
+                Inc(count);
+              end;
+            end;
+
+            if (curStatus = TMethodCallExpectRole.TStatus.Called) or (count > 1) then begin
+              Result := TMethodCallExpectRole.TStatus.Failed;
+            end
+            else if curStatus = TMethodCallExpectRole.TStatus.NoCall then begin
+              Result := TMethodCallExpectRole.TStatus.Called;
+            end
+            else begin
+              Result := curStatus;
+            end;
+          end
+        )
+        .OnErrorReport(
+          function: string
+          begin
+            Result := Format('Exactly once, a method (%s) must be called', [AMethodName]);
+          end
+        );
+    end
+  );
+end;
+
+function Before(const AMethodName: string): IMockExpect;
+begin
+  System.Assert(false, '–¢ŽÀ‘•');
+  Result := TExpectRoleFactory.Create(
+    function (callerInfo: ICallerInfo): IMockRole
+    begin
+
+    end
+  );
+end;
+
+function AfterOnce(const AMethodName: string): IMockExpect;
+begin
+  System.Assert(false, '–¢ŽÀ‘•');
+  Result := TExpectRoleFactory.Create(
+    function (callerInfo: ICallerInfo): IMockRole
+    begin
+
+    end
+  );
+end;
+
+function After(const AMethodName: string): IMockExpect;
+begin
+  System.Assert(false, '–¢ŽÀ‘•');
+  Result := TExpectRoleFactory.Create(
+    function (callerInfo: ICallerInfo): IMockRole
+    begin
+
+    end
+  );
+end;
+
+end.

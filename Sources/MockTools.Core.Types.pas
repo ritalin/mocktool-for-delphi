@@ -3,11 +3,34 @@ unit MockTools.Core.Types;
 interface
 
 uses
-  System.SysUtils, System.Rtti, System.Generics.Collections,
-  MockTools.Mocks
+  System.SysUtils, System.Rtti, System.Generics.Collections
 ;
 
 type
+  IMockRole = interface;
+  ICallerInfo = interface;
+
+  IWhen<T> = interface
+    function GetSubject: T;
+
+    property When: T read GetSubject;
+  end;
+
+  IMockExpect = interface
+    function CreateRole(const callerInfo: ICallerInfo): IMockRole;
+  end;
+
+  IWhenOrExpect<T> = interface(IWhen<T>)
+    function Expect(const expect: IMockExpect): IWhen<T>;
+  end;
+
+  IMockSetup<T> = interface
+    function WillReturn(value: TValue): IWhenOrExpect<T>; overload;
+    function WillExecute(const proc: TProc): IWhenOrExpect<T>; overload;
+    function WillExecute(const fn: TFunc<TValue>): IWhenOrExpect<T>; overload;
+    function WillRaise(const provider: TFunc<Exception>): IWhen<T>; overload;
+  end;
+
   TVerifyResult = record
   public type
     TStatus = (Passed, Failed);
@@ -41,10 +64,16 @@ type
       const roles: TArray<IMockRole>): TMockInvoker; static;
   end;
 
-  IActionStorage = interface
+  ICallerInfo = interface
+    ['{8E85E18C-881A-4A88-9332-AFD30592582A}']
+    function GetCallstacks: TList<TRttiMethod>;
+  end;
+
+  IActionStorage = interface(ICallerInfo)
+    ['{C96895DC-9236-4A91-ABA6-4883D9B37A27}']
     procedure RecordInvoker(const invoker: TMockInvoker);
     function GetActions: TArray<TMockInvoker>;
-    function GetCallstacks: TList<TRttiMEthod>;
+    function GetCallstacks: TList<TRttiMethod>;
 
     property Actions: TArray<TMockInvoker> read GetActions;
     property Callstacks: TList<TRttiMethod> read GetCallstacks;
@@ -65,13 +94,14 @@ type
   end;
 
   IRoleInvokerBuilder<T> = interface(IProxy<T>)
+    ['{07A0B665-346E-442A-AF8B-ABE502A90636}']
     procedure PushRole(const role: IMockRole);
     function Build(const method: TRttiMethod; const args: TArray<TValue>): TMockInvoker;
     function GetRoles: TArray<IMockRole>;
-    function GetCallStacks: TList<TRttiMethod>;
+    function GetCallerInfo: ICallerInfo;
 
     property Roles: TArray<IMockRole> read GetRoles;
-    property CallStacks: TList<TRttiMethod> read GetCallStacks;
+    property CallerInfo: ICallerInfo read GetCallerInfo;
   end;
 
 implementation
