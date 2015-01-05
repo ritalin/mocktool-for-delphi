@@ -16,24 +16,45 @@ type
     FReportProvider: TFunc<integer, string>;
   protected
     { IMockRole }
-    procedure DoInvoke(const method: TRttiMEthod; var outResult: TValue);
+    procedure DoInvoke(const method: TRttiMethod; var outResult: TValue);
     function Verify: TVerifyResult;
   public
     constructor Create(const verifire: TPredicate<integer>; const provider: TFunc<integer, string>);
   end;
 
+  TMethodCallExpectRole = class(TInterfacedObject, IMockRole)
+  private type
+    TStatus = (NoCall, Called, Failed);
+    TVerifyProc = TFunc<integer, integer, TMethodCallExpectRole.TStatus, TMethodCallExpectRole.TStatus>;
+  private
+    FIndicies: TList<integer>;
+    FOnInvoke: TProc<TList<integer>>;
+    FBeforeVerify: TProc<TList<integer>>;
+    FOnVerify: TVerifyProc;
+    FReportProvider: TFunc<string>;
+  protected
+    { IMockRole }
+    procedure DoInvoke(const method: TRttiMethod; var outResult: TValue);
+    function Verify: TVerifyResult;
+  public
+    constructor Create(const onInvoke: TProc<TList<integer>>; const beforeVerify: TProc<TList<integer>>);
+    destructor Destroy; override;
+    function OnVerify(const fn: TVerifyProc): TMethodCallExpectRole;
+    function OnErrorReport(const fn: TFunc<string>): TMethodCallExpectRole;
+  end;
+
   TAbstractSetupRole<T> = class abstract(TInterfacedObject, IMockRole)
   private
     FInvoked: boolean;
-    FProvider: TFunc<TRttiMEthod, T>;
+    FProvider: TFunc<TRttiMethod, T>;
   protected
     procedure DoInvokeInternal(const willReturn: T; var outResult: TValue); virtual; abstract;
   protected
     { IMockRole }
-    procedure DoInvoke(const method: TRttiMEthod; var outResult: TValue);
+    procedure DoInvoke(const method: TRttiMethod; var outResult: TValue);
     function Verify: TVerifyResult;
   public
-    constructor Create(const provider: TFunc<TRttiMEthod, T>);
+    constructor Create(const provider: TFunc<TRttiMethod, T>);
   end;
 
   TMethodSetupRole = class(TAbstractSetupRole<TValue>)
@@ -107,6 +128,7 @@ type
     { IRoleInvokerBuilder }
     procedure PushRole(const role: IMockRole);
     function GetRoles: TArray<IMockRole>;
+    function GetCallStacks: TList<TRttiMethod>;
     function Build(const method: TRttiMethod; const args: TArray<TValue>): TMockInvoker;
   protected
     { IProxy<T> }
@@ -119,10 +141,12 @@ type
   TActionStorage = class(TInterfacedObject, IActionStorage)
   private
     FActions: TList<TMockInvoker>;
+    FCallstacks: TList<TRttiMEthod>;
   protected
     { IActionStrage }
     procedure RecordInvoker(const invoker: TMockInvoker);
     function GetActions: TArray<TMockInvoker>;
+    function GetCallstacks: TList<TRttiMEthod>;
   public
     constructor Create;
     destructor Destroy; override;
@@ -298,7 +322,6 @@ begin
   ));
 
   Result := TWhen<T>.Create(FBuilder);
-
 end;
 
 function TExpect<T>.Exactly(const times: integer): IWhen<T>;
@@ -325,7 +348,52 @@ end;
 
 function TExpect<T>.BeforeOnce(const AMethodName: string): IWhen<T>;
 begin
-  System.Assert(false, '–¢ŽÀ‘•');
+  FBuilder.PushRole(
+    TMethodCallExpectRole.Create(
+      procedure (indicies: TList<integer>)
+      begin
+        indicies.Add(FBuilder.CallStacks.Count);
+      end,
+
+      procedure (indicies: TList<integer>)
+      begin
+        indicies.Insert(0, 0);
+      end
+    )
+    .OnVerify(
+      function (start, stop: integer; curStatus: TMethodCallExpectRole.TStatus): TMethodCallExpectRole.TStatus
+      var
+        i, count: integer;
+      begin
+        if FBuilder.CallStacks.Count = 0 then Exit(curStatus);
+
+        count := 0;
+        for i := start to stop do begin
+          if FBuilder.CallStacks[i].Name = AMethodName then begin
+            Inc(count);
+          end;
+        end;
+
+        if (curStatus = TMethodCallExpectRole.TStatus.Called) or (count > 1) then begin
+          Result := TMethodCallExpectRole.TStatus.Failed;
+        end
+        else if curStatus = TMethodCallExpectRole.TStatus.NoCall then begin
+          Result := TMethodCallExpectRole.TStatus.Called;
+        end
+        else begin
+          Result := curStatus;
+        end;
+      end
+    )
+    .OnErrorReport(
+      function: string
+      begin
+        Result := Format('Exactly once, a method (%s) must be called', [AMethodName]);
+      end
+    )
+  );
+
+  Result := TWhen<T>.Create(FBuilder);
 end;
 
 function TExpect<T>.After(const AMethodName: string): IWhen<T>;
@@ -381,6 +449,11 @@ begin
   Result := TMockInvoker.Create(method, args, Self.GetRoles);
 end;
 
+function TRoleInvokerBuilder<T>.GetCallStacks: TList<TRttiMethod>;
+begin
+  Result := FActionStorage.Callstacks;
+end;
+
 function TRoleInvokerBuilder<T>.GetRoles: TArray<IMockRole>;
 begin
   Result := FRoles.ToArray;
@@ -408,17 +481,24 @@ end;
 constructor TActionStorage.Create;
 begin
   FActions := TList<TMockInvoker>.Create;
+  FCallstacks := TList<TRttiMethod>.Create;
 end;
 
 destructor TActionStorage.Destroy;
 begin
   FActions.Free;
+  FCallstacks.Free;
   inherited;
 end;
 
 function TActionStorage.GetActions: TArray<TMockInvoker>;
 begin
   Result := FActions.ToArray;
+end;
+
+function TActionStorage.GetCallstacks: TList<TRttiMEthod>;
+begin
+  Result := FCallstacks;
 end;
 
 procedure TActionStorage.RecordInvoker(const invoker: TMockInvoker);
@@ -571,6 +651,75 @@ begin
   ));
 
   Result := TWhen<T>.Create(FBuilder);
+end;
+
+{ TMethodCallExpectRole }
+
+constructor TMethodCallExpectRole.Create(const onInvoke,
+  beforeVerify: TProc<TList<integer>>);
+begin
+  FIndicies := TList<integer>.Create;
+
+  FOnInvoke := onInvoke;
+  FBeforeVerify := beforeVerify;
+end;
+
+destructor TMethodCallExpectRole.Destroy;
+begin
+  FIndicies.Free;
+  inherited;
+end;
+
+function TMethodCallExpectRole.OnErrorReport(
+  const fn: TFunc<string>): TMethodCallExpectRole;
+begin
+  FReportProvider := fn;
+  Result := Self;
+end;
+
+function TMethodCallExpectRole.OnVerify(
+  const fn: TVerifyProc): TMethodCallExpectRole;
+begin
+  FOnVerify := fn;
+  Result := Self;
+end;
+
+procedure TMethodCallExpectRole.DoInvoke(const method: TRttiMethod;
+  var outResult: TValue);
+begin
+  Assert(Assigned(FOnInvoke));
+
+  FOnInvoke(FIndicies);
+end;
+
+function TMethodCallExpectRole.Verify: TVerifyResult;
+var
+  indicies: TList<integer>;
+  i: integer;
+  status: TStatus;
+begin
+  Assert(Assigned(FBeforeVerify));
+  Assert(Assigned(FOnVerify));
+  Assert(Assigned(FReportProvider));
+
+  if FIndicies.Count = 0 then begin
+    Exit(TVerifyResult.Create(FReportProvider()));
+  end;
+
+  indicies := TList<integer>.Create(FIndicies);
+
+  FBeforeVerify(indicies);
+
+  status := TStatus.NoCall;
+  for i := 0 to indicies.Count-2 do begin
+    status := FOnVerify(indicies[i], indicies[i+1]-1, status);
+
+    if status = TStatus.Failed then Exit(TVerifyResult.Create(FReportProvider()));
+  end;
+
+  if status = TStatus.NoCall then begin
+    Result := TVerifyResult.Create(FReportProvider());
+  end;
 end;
 
 end.

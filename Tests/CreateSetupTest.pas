@@ -61,7 +61,6 @@ begin
       invoker: TMockInvoker;
       role: IMockRole;
       val: TValue;
-      res: TVerifyResult;
     begin
       when1 := setup.WillReturn(28);
       when1.When.CallCount;

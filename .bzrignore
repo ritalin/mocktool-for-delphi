@@ -3,3 +3,4 @@ MockLib.dproj.local
 MockLib.identcache
 Tests/MockLibTest.dproj.local
 Tests/MockLibTest_project.tvsconfig
+Tests/MockLibTest.identcache

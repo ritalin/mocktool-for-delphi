@@ -3,7 +3,7 @@ unit MockTools.Core.Types;
 interface
 
 uses
-  System.SysUtils, System.Rtti,
+  System.SysUtils, System.Rtti, System.Generics.Collections,
   MockTools.Mocks
 ;
 
@@ -22,7 +22,7 @@ type
   end;
 
   IMockRole = interface
-    procedure DoInvoke(const methodName: TRttiMEthod; var outResult: TValue);
+    procedure DoInvoke(const methodName: TRttiMethod; var outResult: TValue);
     function Verify: TVerifyResult;
   end;
 
@@ -44,8 +44,10 @@ type
   IActionStorage = interface
     procedure RecordInvoker(const invoker: TMockInvoker);
     function GetActions: TArray<TMockInvoker>;
+    function GetCallstacks: TList<TRttiMEthod>;
 
     property Actions: TArray<TMockInvoker> read GetActions;
+    property Callstacks: TList<TRttiMethod> read GetCallstacks;
   end;
 
   IProxy<T> = interface
@@ -66,8 +68,10 @@ type
     procedure PushRole(const role: IMockRole);
     function Build(const method: TRttiMethod; const args: TArray<TValue>): TMockInvoker;
     function GetRoles: TArray<IMockRole>;
+    function GetCallStacks: TList<TRttiMethod>;
 
     property Roles: TArray<IMockRole> read GetRoles;
+    property CallStacks: TList<TRttiMethod> read GetCallStacks;
   end;
 
 implementation
