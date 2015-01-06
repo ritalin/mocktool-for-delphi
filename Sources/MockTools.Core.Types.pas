@@ -81,6 +81,8 @@ type
 
   IProxy<T> = interface
     function GetSubject: T;
+    procedure Extends(const intf: array of TGUID); overload;
+    procedure Extends(const intf: TGUID); overload;
 
     property Subject: T read GetSubject;
   end;

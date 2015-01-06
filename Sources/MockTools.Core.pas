@@ -124,6 +124,8 @@ type
   protected
     { IProxy<T> }
     function GetSubject: T;
+    procedure Extends(const intf: array of TGUID); overload;
+    procedure Extends(const intf: TGUID); overload;
   public
     constructor Create(const recordProxy: IRecordProxy<T>; const storage: IActionStorage);
     destructor Destroy; override;
@@ -158,6 +160,8 @@ type
   protected
     { IProxy<T> }
     function GetSubject: T;
+    procedure Extends(const intf: array of TGUID); overload;
+    procedure Extends(const intf: TGUID); overload;
   protected
     { IRecordProxy<T> }
     procedure BeginRecord(const callback: TInterceptBeforeNotify);
@@ -180,6 +184,8 @@ type
   protected
     { IProxy<T> }
     function GetSubject: T;
+    procedure Extends(const intf: array of TGUID); overload;
+    procedure Extends(const intf: TGUID); overload;
   public
     constructor Create(const iid: TGUID);
   end;
@@ -326,6 +332,16 @@ begin
   inherited;
 end;
 
+procedure TRoleInvokerBuilder<T>.Extends(const intf: array of TGUID);
+begin
+  FRecordProxy.Extends(intf);
+end;
+
+procedure TRoleInvokerBuilder<T>.Extends(const intf: TGUID);
+begin
+  Self.Extends([intf]);
+end;
+
 function TRoleInvokerBuilder<T>.Build(const method: TRttiMethod; const args: TArray<TValue>): TMockInvoker;
 begin
   Result := TMockInvoker.Create(method, args, Self.GetRoles);
@@ -399,6 +415,16 @@ end;
 procedure TObjectRecordProxy<T>.EndRecord;
 begin
   FOnCallback := nil;
+end;
+
+procedure TObjectRecordProxy<T>.Extends(const intf: array of TGUID);
+begin
+  Assert(false, 'Not supported procedure');
+end;
+
+procedure TObjectRecordProxy<T>.Extends(const intf: TGUID);
+begin
+  Assert(false, 'Not supported procedure');
 end;
 
 constructor TObjectRecordProxy<T>.Create;
@@ -656,6 +682,16 @@ end;
 procedure TInterfaceRecordProxy<T>.EndRecord;
 begin
   FOnCallback := nil;
+end;
+
+procedure TInterfaceRecordProxy<T>.Extends(const intf: array of TGUID);
+begin
+  Assert(false, '–¢ŽÀ‘•');
+end;
+
+procedure TInterfaceRecordProxy<T>.Extends(const intf: TGUID);
+begin
+  Self.Extends([intf]);
 end;
 
 function TInterfaceRecordProxy<T>.GetSubject: T;

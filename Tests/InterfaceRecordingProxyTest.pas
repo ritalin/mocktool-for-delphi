@@ -12,13 +12,14 @@ type
   public
     [Test] procedure _Has_Rtti;
     [Test] procedure _Create_Proxy;
+    [Test] procedure _Create_Proxy_extends_other_intf;
     [Test] procedure _Create_Builder;
   end;
 
 implementation
 
 uses
-  MockTools.Core.Types, MockTools.Core,
+  MockTools.Core.Types, MockTools.Core, MockTools.Mocks.CoreExpect,
   MockTarget,
   Should, Should.Constraint.CoreMatchers
 ;
@@ -66,6 +67,23 @@ begin
   end;
 end;
 
+procedure _InterfaceRecordingProxy_Test._Create_Proxy_extends_other_intf;
+var
+  proxy: IRecordProxy<ICounter>;
+  obj: ICounter;
+  count: integer;
+  log: TStrings;
+begin
+  log := TStringList.Create;
+  try
+    proxy := TInterfaceRecordProxy<ICounter>.Create(ICounter);
+    proxy.BeginRecord(ProxyRecordingHook(log));
+
+  finally
+
+  end;
+end;
+
 procedure _InterfaceRecordingProxy_Test._Has_Rtti;
 begin
   Its('INoRttiIntf').Val(HasRtti(TypeInfo(INoRttiIntf))).Should(not BeTrue);
@@ -75,8 +93,66 @@ end;
 procedure _InterfaceRecordingProxy_Test._Create_Builder;
 var
   proxy: IRecordProxy<ICounter>;
+  storage: IActionStorage;
+  builder: IRoleInvokerBuilder<ICounter>;
+  setup: IMockSetup<ICounter>;
+  invoker: TMockInvoker;
+  role1, role2: IMockRole;
+  val: TValue;
 begin
+  proxy := TInterfaceRecordProxy<ICounter>.Create(ICounter);
+  storage := TActionStorage.Create;
 
+  Its('Now Recording').Val(proxy.Recording).Should(not BeTrue);
+
+  builder := TRoleInvokerBuilder<ICounter>.Create(
+    proxy, storage
+  );
+
+  Its('Now Recording').Val(proxy.Recording).Should(BeTrue);
+
+  Its('Actions:length:before').Val(Length(storage.Actions)).Should(BeEqualTo(0));
+
+  setup := TMockSetup<ICounter>.Create(builder);
+  setup
+    .WillReturn(108)
+    .Expect(Exactly(2))
+    .When.CallCount
+  ;
+
+  Its('Actions:length:after').Val(Length(storage.Actions)).Should(BeEqualTo(1));
+
+  invoker := storage.Actions[0];
+
+  Its('Actions[0]:name').Val(invoker.Method.Name).Should(BeEqualTo('CallCount'));
+  Its('Actions[0]:args:length').Val(Length(invoker.Args)).Should(BeEqualTo(1));  // the receiver is counted
+  Its('Actions[0]:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(2));
+
+  role1 := invoker.Roles[0];
+
+  Its('Actions[0]:role[0]:verify[0]').Val(role1.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+  role1.DoInvoke(invoker.Method, val);
+
+  Its('Actions[0]:role[0]:result[1]').val(val).Should(BeEqualTo(108));
+  Its('Actions[0]:role[0]:verify[1]').Val(role1.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+  role1.DoInvoke(invoker.Method, val);
+
+  Its('Actions[0]:role[0]:result[2]').val(val).Should(BeEqualTo(108));
+  Its('Actions[0]:role[0]:verify[2]').Val(role1.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+  role2 := invoker.Roles[1];
+
+  Its('Actions[0]:role[1]:verify[0]').Val(role2.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+  role2.DoInvoke(invoker.Method, val);
+
+  Its('Actions[0]:role[1]:verify[1]').Val(role2.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+  role2.DoInvoke(invoker.Method, val);
+
+  Its('Actions[0]:role[1]:verify[2]').Val(role2.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 end;
 
 initialization
