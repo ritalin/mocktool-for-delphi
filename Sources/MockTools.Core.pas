@@ -3,7 +3,7 @@ unit MockTools.Core;
 interface
 
 uses
-  System.SysUtils, System.Rtti, System.Generics.Collections,
+  System.SysUtils, System.Rtti, System.TypInfo, System.Generics.Collections,
   MockTools.Mocks, MockTools.Core.Types
 ;
 
@@ -167,6 +167,24 @@ type
     constructor Create;
     destructor Destroy; override;
   end;
+
+  TInterfaceRecordProxy<T> = class(TVirtualInterface, IRecordProxy<T>)
+  private
+    FOnCallback: TInterceptBeforeNotify;
+    FIID: TGUID;
+  protected
+    { IRecordProxy<T> }
+    procedure BeginRecord(const callback: TInterceptBeforeNotify);
+    procedure EndRecord;
+    function IsRecording: boolean;
+  protected
+    { IProxy<T> }
+    function GetSubject: T;
+  public
+    constructor Create(const iid: TGUID);
+  end;
+
+function HasRtti(info: PTypeInfo): boolean;
 
 implementation
 
@@ -584,6 +602,72 @@ begin
   if status = TStatus.NoCall then begin
     Result := TVerifyResult.Create(FReportProvider(invoker));
   end;
+end;
+
+function HasRtti(info: PTypeInfo): boolean;
+var
+  ctx: TRttiContext;
+  t: TRttiType;
+begin
+  Assert(Assigned(info));
+
+  ctx := TRttiContext.Create;
+  try
+    t := ctx.GetType(info);
+    Assert(Assigned(t), 'Interface not found.');
+
+    Result := Length(t.GetMethods) > 0;
+  finally
+    ctx.Free;
+  end;
+end;
+
+{ TInterfaceRecordProxy<T> }
+
+constructor TInterfaceRecordProxy<T>.Create(const iid: TGUID);
+var
+  info: PTypeInfo;
+begin
+  info := TypeInfo(T);
+  Assert(HasRtti(info), 'This interface do not have RTTI. Please use "{$M+}"');
+
+  FIID := iid;
+
+  inherited Create(info,
+    procedure (Method: TRttiMethod;
+      const Args: TArray<TValue>; out Result: TValue)
+    var
+      doInvoke: boolean;
+    begin
+      Assert(Assigned(FOnCallback));
+
+      doInvoke := false;
+      FOnCallback(Self, Method, Args, doInvoke, Result);
+    end
+  );
+end;
+
+procedure TInterfaceRecordProxy<T>.BeginRecord(
+  const callback: TInterceptBeforeNotify);
+begin
+  FOnCallback := callback;
+end;
+
+procedure TInterfaceRecordProxy<T>.EndRecord;
+begin
+  FOnCallback := nil;
+end;
+
+function TInterfaceRecordProxy<T>.GetSubject: T;
+var
+  err: HRESULT;
+begin
+  err := Self.QueryInterface(FIID, Result);
+end;
+
+function TInterfaceRecordProxy<T>.IsRecording: boolean;
+begin
+  Result := Assigned(FOnCallback);
 end;
 
 end.

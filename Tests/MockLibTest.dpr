@@ -16,7 +16,8 @@ uses
   CreateSetupTest in 'CreateSetupTest.pas',
   MockTarget in 'MockTarget.pas',
   CreateExpectRolesTest in 'CreateExpectRolesTest.pas',
-  MockTools.Mocks.CoreExpect in '..\Sources\MockTools.Mocks.CoreExpect.pas';
+  MockTools.Mocks.CoreExpect in '..\Sources\MockTools.Mocks.CoreExpect.pas',
+  InterfaceRecordingProxyTest in 'InterfaceRecordingProxyTest.pas';
 
 var
   runner : ITestRunner;
@@ -34,9 +35,10 @@ begin
     runner.AddLogger(logger);
     runner.AddLogger(nunitLogger);
 
-    TDUnitX.RegisterTestFixture(_RecordProxy_Test);
+//    TDUnitX.RegisterTestFixture(_RecordProxy_Test);
+    TDUnitX.RegisterTestFixture(_InterfaceRecordingProxy_Test);
     TDUnitX.RegisterTestFixture(_Create_Setup_Roles);
-    TDUnitX.RegisterTestFixture(_Create_Expect_Roles);
+//    TDUnitX.RegisterTestFixture(_Create_Expect_Roles);
 
     //Run tests
     results := runner.Execute;

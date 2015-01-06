@@ -8,7 +8,19 @@ uses
 ;
 
 type
-  TCounterObject = class
+  INoRttiIntf = interface
+    function SomeFunc(const n: integer; const s: string): string;
+  end;
+
+  {$M+}
+  ICounter = interface
+    ['{84A318BD-84DA-4183-B55D-6878976C28F3}']
+    procedure CountUp;
+    function CallCount: integer;
+  end;
+  {$M-}
+
+  TCounterObject = class(TInterfacedObject, ICounter)
   private
     FCount: integer;
   public
