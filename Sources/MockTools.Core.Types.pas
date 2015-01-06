@@ -44,11 +44,6 @@ type
     class function Create(const report: string): TVerifyResult; static;
   end;
 
-  IMockRole = interface
-    procedure DoInvoke(const methodName: TRttiMethod; var outResult: TValue);
-    function Verify: TVerifyResult;
-  end;
-
   TMockInvoker = record
   private
     FMethod: TRttiMethod;
@@ -62,6 +57,11 @@ type
     class function Create(
       const method: TRttiMethod; const args: TArray<TValue>;
       const roles: TArray<IMockRole>): TMockInvoker; static;
+  end;
+
+  IMockRole = interface
+    procedure DoInvoke(const methodName: TRttiMethod; var outResult: TValue);
+    function Verify: TVerifyResult;
   end;
 
   ICallerInfo = interface

@@ -3,7 +3,7 @@ unit MockTools.Mocks.CoreExpect;
 interface
 
 uses
-  SysUtils, System.Generics.Collections,
+  SysUtils, Rtti, System.Generics.Collections,
   MockTools.Core.Types
 ;
 
@@ -168,7 +168,7 @@ begin
             if (curStatus = TMethodCallExpectRole.TStatus.Called) or (count > 1) then begin
               Result := TMethodCallExpectRole.TStatus.Failed;
             end
-            else if curStatus = TMethodCallExpectRole.TStatus.NoCall then begin
+            else if (curStatus = TMethodCallExpectRole.TStatus.NoCall) and (count = 1) then begin
               Result := TMethodCallExpectRole.TStatus.Called;
             end
             else begin
@@ -188,33 +188,138 @@ end;
 
 function Before(const AMethodName: string): IMockExpect;
 begin
-  System.Assert(false, '–¢ŽÀ‘•');
   Result := TExpectRoleFactory.Create(
     function (callerInfo: ICallerInfo): IMockRole
     begin
+      Result :=
+        TMethodCallExpectRole.Create(
+          procedure (indicies: TList<integer>)
+          begin
+            indicies.Add(callerInfo.GetCallStacks.Count);
+          end,
 
+          procedure (indicies: TList<integer>)
+          begin
+            indicies.Insert(0, 0);
+          end
+        )
+        .OnVerify(
+          function (start, stop: integer; curStatus: TMethodCallExpectRole.TStatus): TMethodCallExpectRole.TStatus
+          var
+            i: integer;
+          begin
+            if callerInfo.GetCallStacks.Count = 0 then Exit(curStatus);
+
+            for i := start to stop do begin
+              if callerInfo.GetCallStacks[i].Name = AMethodName then begin
+                Exit(TMethodCallExpectRole.TStatus.Called);
+              end;
+            end;
+
+            Result := TMethodCallExpectRole.TStatus.Failed;
+          end
+        )
+        .OnErrorReport(
+          function(): string
+          begin
+            Result := Format('At least once, a method (%s) must be called', [AMethodName]);
+          end
+        );
     end
   );
 end;
 
 function AfterOnce(const AMethodName: string): IMockExpect;
 begin
-  System.Assert(false, '–¢ŽÀ‘•');
   Result := TExpectRoleFactory.Create(
     function (callerInfo: ICallerInfo): IMockRole
     begin
+      Result :=
+        TMethodCallExpectRole.Create(
+          procedure (indicies: TList<integer>)
+          begin
+            indicies.Add(callerInfo.GetCallStacks.Count);
+          end,
 
+          procedure (indicies: TList<integer>)
+          begin
+            indicies.Add(callerInfo.GetCallStacks.Count);
+          end
+        )
+        .OnVerify(
+          function (start, stop: integer; curStatus: TMethodCallExpectRole.TStatus): TMethodCallExpectRole.TStatus
+          var
+            i, count: integer;
+          begin
+            if callerInfo.GetCallStacks.Count = 0 then Exit(curStatus);
+
+            count := 0;
+            for i := start to stop do begin
+              if callerInfo.GetCallStacks[i].Name = AMethodName then begin
+                Inc(count);
+              end;
+            end;
+
+            if (curStatus = TMethodCallExpectRole.TStatus.Called) or (count > 1) then begin
+              Result := TMethodCallExpectRole.TStatus.Failed;
+            end
+            else if (curStatus = TMethodCallExpectRole.TStatus.NoCall) and (count = 1) then begin
+              Result := TMethodCallExpectRole.TStatus.Called;
+            end
+            else begin
+              Result := curStatus;
+            end;
+          end
+        )
+        .OnErrorReport(
+          function: string
+          begin
+            Result := Format('Exactly once, a method (%s) must be called', [AMethodName]);
+          end
+        );
     end
   );
 end;
 
 function After(const AMethodName: string): IMockExpect;
 begin
-  System.Assert(false, '–¢ŽÀ‘•');
   Result := TExpectRoleFactory.Create(
     function (callerInfo: ICallerInfo): IMockRole
     begin
+      Result :=
+        TMethodCallExpectRole.Create(
+          procedure (indicies: TList<integer>)
+          begin
+            indicies.Add(callerInfo.GetCallStacks.Count);
+          end,
 
+          procedure (indicies: TList<integer>)
+          begin
+            indicies.Add(callerInfo.GetCallStacks.Count);
+          end
+        )
+        .OnVerify(
+          function (start, stop: integer; curStatus: TMethodCallExpectRole.TStatus): TMethodCallExpectRole.TStatus
+          var
+            i: integer;
+          begin
+            if callerInfo.GetCallStacks.Count = 0 then Exit(curStatus);
+
+            for i := start to stop do begin
+              if callerInfo.GetCallStacks[i].Name = AMethodName then begin
+                Exit(TMethodCallExpectRole.TStatus.Called);
+              end;
+            end;
+
+            Result := TMethodCallExpectRole.TStatus.Failed;
+          end
+        )
+        .OnErrorReport(
+          function(): string
+          begin
+            Result := Format('At least once, a method (%s) must be called', [AMethodName]);
+          end
+        );
     end
   );
 end;

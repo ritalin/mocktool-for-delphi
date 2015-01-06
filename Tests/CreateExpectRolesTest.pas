@@ -23,10 +23,30 @@ type
     [Test] procedure _Create_At_Least_Once;
     [Test] procedure _Create_At_Most;
     [Test] procedure _Create_Between;
+
     [Test] procedure _Create_BeforeOnce_NoCall;
-    [Test] procedure _Create_BeforeOnce_Valid;
+    [Test] procedure _Create_BeforeOnce_NoCall_2;
     [Test] procedure _Create_BeforeOnce_OverCalled;
     [Test] procedure _Create_BeforeOnce_OverCalled_2;
+    [Test] procedure _Create_BeforeOnce_Valid;
+
+    [Test] procedure _Create_Before_NoCall;
+    [Test] procedure _Create_Before_NoCall_2;
+    [Test] procedure _Create_Before_OverCalled;
+    [Test] procedure _Create_Before_OverCalled_2;
+    [Test] procedure _Create_Before_Valid;
+
+    [Test] procedure _Create_AfterOnce_NoCall;
+    [Test] procedure _Create_AfterOnce_NoCall_2;
+    [Test] procedure _Create_AfterOnce_OverCalled;
+    [Test] procedure _Create_AfterOnce_OverCalled_2;
+    [Test] procedure _Create_AfterOnce_Valid;
+
+    [Test] procedure _Create_After_NoCall;
+    [Test] procedure _Create_After_NoCall_2;
+    [Test] procedure _Create_After_OverCalled;
+    [Test] procedure _Create_After_OverCalled_2;
+    [Test] procedure _Create_After_Valid;
   end;
 
 implementation
@@ -428,6 +448,40 @@ begin
   );
 end;
 
+procedure _Create_Expect_Roles._Create_BeforeOnce_NoCall_2;
+begin
+  Self.TestImpl<TCallFlowObject>(
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      mock
+      .Expect(BeforeOnce('SetupOnce'))
+      .When.Execute;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('Execute'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+    end
+  );
+end;
+
 procedure _Create_Expect_Roles._Create_BeforeOnce_Valid;
 begin
   Self.TestImpl<TCallFlowObject>(
@@ -529,12 +583,651 @@ begin
 
       role.DoInvoke(invoker.Method, val);
 
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
       role.DoInvoke(invoker.Method, val);
 
+      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_Before_NoCall;
+begin
+  Self.TestImpl<TCallFlowObject>(
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      mock
+      .Expect(Before('Setup'))
+      .When.Execute;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('Execute'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      role.DoInvoke(invoker.Method, val);
+
       Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_Before_NoCall_2;
+begin
+  Self.TestImpl<TCallFlowObject>(
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      mock
+      .Expect(Before('Setup'))
+      .When.Execute;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('Execute'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('SetupOnce'));
+      strage.Callstacks.Add(FindMethodByName('Setup'));
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_Before_Valid;
+begin
+  Self.TestImpl<TCallFlowObject>(
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      mock
+      .Expect(Before('Setup'))
+      .When.Execute;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('Execute'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('SetupOnce'));
+      strage.Callstacks.Add(FindMethodByName('Setup'));
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('Setup'));
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('Setup'));
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_Before_OverCalled;
+begin
+  Self.TestImpl<TCallFlowObject>(
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      mock
+      .Expect(Before('Setup'))
+      .When.Execute;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('Execute'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('SetupOnce'));
+      strage.Callstacks.Add(FindMethodByName('Setup'));
+      strage.Callstacks.Add(FindMethodByName('Setup'));
+      strage.Callstacks.Add(FindMethodByName('Setup'));
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_Before_OverCalled_2;
+begin
+  Self.TestImpl<TCallFlowObject>(
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      mock
+      .Expect(Before('Setup'))
+      .When.Execute;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('Execute'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('SetupOnce'));
+      strage.Callstacks.Add(FindMethodByName('Setup'));
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('Setup'));
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('Setup'));
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_AfterOnce_NoCall;
+begin
+  Self.TestImpl<TCallFlowObject>(
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      mock
+      .Expect(AfterOnce('TearDownOnce'))
+      .When.Execute;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('Execute'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_AfterOnce_NoCall_2;
+begin
+  Self.TestImpl<TCallFlowObject>(
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      mock
+      .Expect(AfterOnce('TearDownOnce'))
+      .When.Execute;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('Execute'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_AfterOnce_OverCalled;
+begin
+  Self.TestImpl<TCallFlowObject>(
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      mock
+      .Expect(AfterOnce('TearDownOnce'))
+      .When.Execute;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('Execute'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      strage.Callstacks.Add(FindMethodByName('TearDown'));
+      strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
+      strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
+      strage.Callstacks.Add(FindMethodByName('TearDown'));
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_AfterOnce_OverCalled_2;
+begin
+  Self.TestImpl<TCallFlowObject>(
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      mock
+      .Expect(AfterOnce('TearDownOnce'))
+      .When.Execute;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('Execute'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      strage.Callstacks.Add(FindMethodByName('TearDown'));
+      strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      strage.Callstacks.Add(FindMethodByName('TearDown'));
+      strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
+      strage.Callstacks.Add(FindMethodByName('TearDown'));
+
+      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('TearDown'));
+      strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
+      strage.Callstacks.Add(FindMethodByName('TearDown'));
+
+      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_AfterOnce_Valid;
+begin
+  Self.TestImpl<TCallFlowObject>(
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      mock
+      .Expect(AfterOnce('TearDownOnce'))
+      .When.Execute;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('Execute'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('SetUpOnce'));
+      strage.Callstacks.Add(FindMethodByName('SetUp'));
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      strage.Callstacks.Add(FindMethodByName('TearDown'));
+      strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_After_NoCall;
+begin
+  Self.TestImpl<TCallFlowObject>(
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      mock
+      .Expect(After('TearDown'))
+      .When.Execute;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('Execute'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('SetupOnce'));
+      strage.Callstacks.Add(FindMethodByName('Setup'));
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_After_NoCall_2;
+begin
+  Self.TestImpl<TCallFlowObject>(
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      mock
+      .Expect(After('TearDown'))
+      .When.Execute;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('Execute'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('SetupOnce'));
+      strage.Callstacks.Add(FindMethodByName('Setup'));
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_After_OverCalled;
+begin
+  Self.TestImpl<TCallFlowObject>(
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      mock
+      .Expect(After('TearDown'))
+      .When.Execute;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('Execute'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('SetupOnce'));
+      strage.Callstacks.Add(FindMethodByName('Setup'));
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('TearDown'));
+      strage.Callstacks.Add(FindMethodByName('TearDown'));
+      strage.Callstacks.Add(FindMethodByName('TearDown'));
+      strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
+
+      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_After_OverCalled_2;
+begin
+  Self.TestImpl<TCallFlowObject>(
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      mock
+      .Expect(After('TearDown'))
+      .When.Execute;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('Execute'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('SetupOnce'));
+      strage.Callstacks.Add(FindMethodByName('Setup'));
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('TearDown'));
+
+      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      strage.Callstacks.Add(FindMethodByName('TearDown'));
+
+      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+    end
+  );
+end;
+
+procedure _Create_Expect_Roles._Create_After_Valid;
+begin
+  Self.TestImpl<TCallFlowObject>(
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    var
+      role: IMockRole;
+      invoker: TMockInvoker;
+      val: TValue;
+    begin
+      mock
+      .Expect(After('TearDown'))
+      .When.Execute;
+
+      Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(1));
+
+      invoker := strage.Actions[0];
+
+      Its('Invoker:name'        ).Val(invoker.Method.Name).Should(BeEqualTo('Execute'));
+      Its('Invoker:args:length' ).Val(Length(invoker.Args)).Should(BeEqualTo(0));
+      Its('Invoker:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(1));
+
+      role := invoker.Roles[0];
+
+      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('SetupOnce'));
+      strage.Callstacks.Add(FindMethodByName('Setup'));
+      strage.Callstacks.Add(FindMethodByName('Execute'));
+
+      role.DoInvoke(invoker.Method, val);
+
+      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+      strage.Callstacks.Add(FindMethodByName('TearDown'));
+      strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
+
+      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;
