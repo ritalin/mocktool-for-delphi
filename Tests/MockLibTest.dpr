@@ -35,10 +35,10 @@ begin
     runner.AddLogger(logger);
     runner.AddLogger(nunitLogger);
 
-//    TDUnitX.RegisterTestFixture(_RecordProxy_Test);
+    TDUnitX.RegisterTestFixture(_RecordProxy_Test);
     TDUnitX.RegisterTestFixture(_InterfaceRecordingProxy_Test);
     TDUnitX.RegisterTestFixture(_Create_Setup_Roles);
-//    TDUnitX.RegisterTestFixture(_Create_Expect_Roles);
+    TDUnitX.RegisterTestFixture(_Create_Expect_Roles);
 
     //Run tests
     results := runner.Execute;

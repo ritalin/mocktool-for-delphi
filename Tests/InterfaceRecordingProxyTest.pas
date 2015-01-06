@@ -2,7 +2,7 @@ unit InterfaceRecordingProxyTest;
 
 interface
 uses
-  Classes, Rtti,
+  SysUtils, Classes, Rtti,
   DUnitX.TestFramework;
 
 type
@@ -41,13 +41,11 @@ end;
 procedure _InterfaceRecordingProxy_Test._Create_Proxy;
 var
   proxy: IRecordProxy<ICounter>;
-  obj: ICounter;
-  count: integer;
   log: TStrings;
 begin
   log := TStringList.Create;
   try
-    proxy := TInterfaceRecordProxy<ICounter>.Create(ICounter);
+    proxy := TInterfaceRecordProxy<ICounter>.Create(ICounter, TypeInfo(ICounter));
     proxy.BeginRecord(ProxyRecordingHook(log));
     begin
       Its('log:length:before').Val(log.Count).Should(BeEqualTo(0));
@@ -61,7 +59,6 @@ begin
       Its('log[1]').Val(log[1]).Should(BeEqualTo('CountUp'));
       Its('log[2]').Val(log[2]).Should(BeEqualTo('CallCount'));
     end;
-    proxy.EndRecord;
   finally
     log.Free;
   end;
@@ -70,17 +67,35 @@ end;
 procedure _InterfaceRecordingProxy_Test._Create_Proxy_extends_other_intf;
 var
   proxy: IRecordProxy<ICounter>;
-  obj: ICounter;
-  count: integer;
   log: TStrings;
+  showing: IShowing;
 begin
   log := TStringList.Create;
   try
-    proxy := TInterfaceRecordProxy<ICounter>.Create(ICounter);
+    proxy := TInterfaceRecordProxy<ICounter>.Create(ICounter, TypeInfo(ICounter));
+    proxy.Implements([IShowing]);
     proxy.BeginRecord(ProxyRecordingHook(log));
+    begin
+      Its('log:length:before').Val(log.Count).Should(BeEqualTo(0));
 
+      proxy.Subject.CountUp;
+      proxy.Subject.CountUp;
+      proxy.Subject.CallCount;
+
+      Its('Switch interface').Val(Supports(proxy.Subject, IShowing, showing)).Should(BeTrue);
+
+      showing.ToString;
+      showing.ToString;
+
+      Its('log:length:after').Val(log.Count).Should(BeEqualTo(5));
+      Its('log[0]').Val(log[0]).Should(BeEqualTo('CountUp'));
+      Its('log[1]').Val(log[1]).Should(BeEqualTo('CountUp'));
+      Its('log[2]').Val(log[2]).Should(BeEqualTo('CallCount'));
+      Its('log[3]').Val(log[3]).Should(BeEqualTo('ToString'));
+      Its('log[4]').Val(log[4]).Should(BeEqualTo('ToString'));
+    end;
   finally
-
+    log.Free;
   end;
 end;
 
@@ -100,7 +115,7 @@ var
   role1, role2: IMockRole;
   val: TValue;
 begin
-  proxy := TInterfaceRecordProxy<ICounter>.Create(ICounter);
+  proxy := TInterfaceRecordProxy<ICounter>.Create(ICounter, TypeInfo(ICounter));
   storage := TActionStorage.Create;
 
   Its('Now Recording').Val(proxy.Recording).Should(not BeTrue);

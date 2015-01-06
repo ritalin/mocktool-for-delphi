@@ -3,7 +3,7 @@ unit MockTarget;
 interface
 
 uses
-  System.SysUtils, System.Rtti,
+  System.SysUtils, System.Rtti, System.TypInfo,
   MockTools.Core.Types
 ;
 
@@ -28,6 +28,13 @@ type
     function CallCount: integer; virtual;
     function SomeFunc(const n: integer; const s: string): string;
   end;
+
+  {$M+}
+  IShowing = interface
+    ['{E1B6AB03-FF6F-4424-A54E-9C829B42529D}']
+    function ToString: string;
+  end;
+  {$M-}
 
   TVerifyResultStatusHelpeer = record helper for TVerifyResult.TStatus
     function AsTValue: TValue;
@@ -58,5 +65,14 @@ function TVerifyResultStatusHelpeer.AsTValue: TValue;
 begin
   Result := TValue.From<TVerifyResult.TStatus>(Self);
 end;
+
+function Init: PTypeInfo;
+begin
+  Result := TypeInfo(IShowing);
+end;
+
+initialization
+
+Init;
 
 end.

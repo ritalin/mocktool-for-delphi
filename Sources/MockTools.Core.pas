@@ -124,8 +124,8 @@ type
   protected
     { IProxy<T> }
     function GetSubject: T;
-    procedure Extends(const intf: array of TGUID); overload;
-    procedure Extends(const intf: TGUID); overload;
+    procedure Implements(const intf: array of TGUID); overload;
+    procedure Implement(const intf: TGUID); overload;
   public
     constructor Create(const recordProxy: IRecordProxy<T>; const storage: IActionStorage);
     destructor Destroy; override;
@@ -160,8 +160,8 @@ type
   protected
     { IProxy<T> }
     function GetSubject: T;
-    procedure Extends(const intf: array of TGUID); overload;
-    procedure Extends(const intf: TGUID); overload;
+    procedure Implements(const intf: array of TGUID); overload;
+    procedure Implement(const intf: TGUID); overload;
   protected
     { IRecordProxy<T> }
     procedure BeginRecord(const callback: TInterceptBeforeNotify);
@@ -172,22 +172,29 @@ type
     destructor Destroy; override;
   end;
 
-  TInterfaceRecordProxy<T> = class(TVirtualInterface, IRecordProxy<T>)
-  private
-    FOnCallback: TInterceptBeforeNotify;
+  TInterfaceRecordProxy<T> = class(TVirtualInterface, IRecordProxy<T>, IRecordable, IInterface)
+  private var
     FIID: TGUID;
+    FChildProxies: TDictionary<TGUID, IInterface>;
+    FOnCallback: TInterceptBeforeNotify;
+  private
+    function ResolveTypes(const intf: array of TGUID): TArray<TRttiInterfaceType>;
+    function QueryImplementedInterface(const IID: TGUID; out Obj): HResult;
   protected
-    { IRecordProxy<T> }
+    { IRecordable }
     procedure BeginRecord(const callback: TInterceptBeforeNotify);
-    procedure EndRecord;
     function IsRecording: boolean;
   protected
     { IProxy<T> }
     function GetSubject: T;
-    procedure Extends(const intf: array of TGUID); overload;
-    procedure Extends(const intf: TGUID); overload;
+    procedure Implements(const intf: array of TGUID); overload;
+    procedure Implement(const intf: TGUID); overload;
   public
-    constructor Create(const iid: TGUID);
+    { IInterface }
+    function QueryInterface(const IID: TGUID; out Obj): HResult; override; stdcall;
+  public
+    constructor Create(const iid: TGUID; const info: PTypeInfo);
+    destructor Destroy; override;
   end;
 
 function HasRtti(info: PTypeInfo): boolean;
@@ -332,14 +339,14 @@ begin
   inherited;
 end;
 
-procedure TRoleInvokerBuilder<T>.Extends(const intf: array of TGUID);
+procedure TRoleInvokerBuilder<T>.Implements(const intf: array of TGUID);
 begin
-  FRecordProxy.Extends(intf);
+  FRecordProxy.Implements(intf);
 end;
 
-procedure TRoleInvokerBuilder<T>.Extends(const intf: TGUID);
+procedure TRoleInvokerBuilder<T>.Implement(const intf: TGUID);
 begin
-  Self.Extends([intf]);
+  Self.Implements([intf]);
 end;
 
 function TRoleInvokerBuilder<T>.Build(const method: TRttiMethod; const args: TArray<TValue>): TMockInvoker;
@@ -417,12 +424,12 @@ begin
   FOnCallback := nil;
 end;
 
-procedure TObjectRecordProxy<T>.Extends(const intf: array of TGUID);
+procedure TObjectRecordProxy<T>.Implements(const intf: array of TGUID);
 begin
   Assert(false, 'Not supported procedure');
 end;
 
-procedure TObjectRecordProxy<T>.Extends(const intf: TGUID);
+procedure TObjectRecordProxy<T>.Implement(const intf: TGUID);
 begin
   Assert(false, 'Not supported procedure');
 end;
@@ -650,14 +657,13 @@ end;
 
 { TInterfaceRecordProxy<T> }
 
-constructor TInterfaceRecordProxy<T>.Create(const iid: TGUID);
-var
-  info: PTypeInfo;
+constructor TInterfaceRecordProxy<T>.Create(const iid: TGUID; const info: PTypeInfo);
 begin
-  info := TypeInfo(T);
-  Assert(HasRtti(info), 'This interface do not have RTTI. Please use "{$M+}"');
+  Assert(Assigned(info));
+  Assert(HasRtti(info), Format('"%s" do not have RTTI. Please use "{$M+}"', [info^.Name]));
 
   FIID := iid;
+  FChildProxies := TDictionary<TGUID, IInterface>.Create;
 
   inherited Create(info,
     procedure (Method: TRttiMethod;
@@ -673,37 +679,100 @@ begin
   );
 end;
 
+destructor TInterfaceRecordProxy<T>.Destroy;
+begin
+  FChildProxies.Free;
+  inherited;
+end;
+
 procedure TInterfaceRecordProxy<T>.BeginRecord(
   const callback: TInterceptBeforeNotify);
+var
+  iif: IInterface;
+  child: IRecordable;
 begin
   FOnCallback := callback;
+
+  for iif in FChildProxies.Values do begin
+    if Supports(iif, IRecordable, child) then begin
+      child.BeginRecord(callback);
+    end;
+  end;
 end;
 
-procedure TInterfaceRecordProxy<T>.EndRecord;
+function TInterfaceRecordProxy<T>.ResolveTypes(const intf: array of TGUID): TArray<TRttiInterfaceType>;
+var
+  ctx: TRttiContext;
+  list: TList<TRttiInterfaceType>;
+  t: TRttiType;
+  tt: TRttiInterfaceType;
+  i: integer;
 begin
-  FOnCallback := nil;
+  ctx := TRttiContext.Create;
+  list := TList<TRttiInterfaceType>.Create;
+  try
+    for t in ctx.GetTypes do begin
+      if t is TRttiInterfaceType then begin
+        tt := TRttiInterfaceType(t);
+
+        for i := Low(intf) to High(intf) do begin
+          if tt.GUID = intf[i] then begin
+            list.Add(tt);
+          end;
+        end;
+      end;
+    end;
+
+    Result := list.ToArray;
+  finally
+    list.Free;
+    ctx.Free;
+  end;
 end;
 
-procedure TInterfaceRecordProxy<T>.Extends(const intf: array of TGUID);
+procedure TInterfaceRecordProxy<T>.Implements(const intf: array of TGUID);
+var
+  t:  TRttiInterfaceType;
 begin
-  Assert(false, '–¢ŽÀ‘•');
+  for t in Self.ResolveTypes(intf) do begin
+    FChildProxies.Add(t.GUID, TInterfaceRecordProxy<TObject>.Create(t.GUID, t.Handle));
+  end;
 end;
 
-procedure TInterfaceRecordProxy<T>.Extends(const intf: TGUID);
+procedure TInterfaceRecordProxy<T>.Implement(const intf: TGUID);
 begin
-  Self.Extends([intf]);
+  Self.Implements([intf]);
 end;
 
 function TInterfaceRecordProxy<T>.GetSubject: T;
-var
-  err: HRESULT;
 begin
-  err := Self.QueryInterface(FIID, Result);
+  Self.QueryInterface(FIID, Result);
 end;
 
 function TInterfaceRecordProxy<T>.IsRecording: boolean;
+var
+  err: HRESULT;
 begin
   Result := Assigned(FOnCallback);
+end;
+
+function TInterfaceRecordProxy<T>.QueryImplementedInterface(const IID: TGUID; out Obj): HResult;
+var
+  proxy: IInterface;
+begin
+  if not FChildProxies.TryGetValue(IID, proxy) then Exit(E_NOTIMPL);
+
+  Result := proxy.QueryInterface(IID, Obj);
+end;
+
+function TInterfaceRecordProxy<T>.QueryInterface(const IID: TGUID;
+  out Obj): HResult;
+begin
+  Result := inherited QueryInterface(IID, Obj);
+
+  if Result <> 0 then begin
+    Result := Self.QueryImplementedInterface(IID, Obj);
+  end;
 end;
 
 end.

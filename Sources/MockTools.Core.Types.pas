@@ -79,17 +79,22 @@ type
     property Callstacks: TList<TRttiMethod> read GetCallstacks;
   end;
 
+  IRecordable = interface
+    ['{68839590-924F-4889-976D-46EF36919FE6}']
+    procedure BeginRecord(const callback: TInterceptBeforeNotify);
+    function IsRecording: boolean;
+  end;
+
   IProxy<T> = interface
     function GetSubject: T;
-    procedure Extends(const intf: array of TGUID); overload;
-    procedure Extends(const intf: TGUID); overload;
+    procedure Implements(const intf: array of TGUID); overload;
+    procedure Implement(const intf: TGUID); overload;
 
     property Subject: T read GetSubject;
   end;
 
   IRecordProxy<T> = interface(IProxy<T>)
     procedure BeginRecord(const callback: TInterceptBeforeNotify);
-    procedure EndRecord;
     function IsRecording: boolean;
 
     property Recording: boolean read IsRecording;
