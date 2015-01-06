@@ -106,19 +106,19 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -146,19 +146,19 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -186,19 +186,19 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -226,19 +226,19 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;
@@ -266,19 +266,19 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;
@@ -306,19 +306,19 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -346,23 +346,23 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[4]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[4]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -439,11 +439,11 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -471,13 +471,13 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -505,14 +505,14 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;
@@ -540,7 +540,7 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
@@ -548,7 +548,7 @@ begin
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -576,21 +576,21 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -618,11 +618,11 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -650,7 +650,7 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Setup'));
@@ -658,19 +658,19 @@ begin
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -698,7 +698,7 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Setup'));
@@ -706,21 +706,21 @@ begin
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;
@@ -748,7 +748,7 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Setup'));
@@ -758,7 +758,7 @@ begin
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;
@@ -786,7 +786,7 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Setup'));
@@ -794,21 +794,21 @@ begin
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;
@@ -836,17 +836,17 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -874,13 +874,13 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -908,7 +908,7 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
@@ -919,7 +919,7 @@ begin
       strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
       strage.Callstacks.Add(FindMethodByName('TearDown'));
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -947,7 +947,7 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
@@ -956,7 +956,7 @@ begin
       strage.Callstacks.Add(FindMethodByName('TearDown'));
       strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
@@ -966,13 +966,13 @@ begin
       strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
       strage.Callstacks.Add(FindMethodByName('TearDown'));
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('TearDown'));
       strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
       strage.Callstacks.Add(FindMethodByName('TearDown'));
 
-      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -1000,7 +1000,7 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('SetUpOnce'));
       strage.Callstacks.Add(FindMethodByName('SetUp'));
@@ -1011,7 +1011,7 @@ begin
       strage.Callstacks.Add(FindMethodByName('TearDown'));
       strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;
@@ -1039,7 +1039,7 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Setup'));
@@ -1047,7 +1047,7 @@ begin
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -1075,7 +1075,7 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Setup'));
@@ -1083,19 +1083,19 @@ begin
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -1123,7 +1123,7 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Setup'));
@@ -1131,14 +1131,14 @@ begin
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('TearDown'));
       strage.Callstacks.Add(FindMethodByName('TearDown'));
       strage.Callstacks.Add(FindMethodByName('TearDown'));
       strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;
@@ -1166,7 +1166,7 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Setup'));
@@ -1174,11 +1174,11 @@ begin
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('TearDown'));
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
@@ -1186,7 +1186,7 @@ begin
 
       strage.Callstacks.Add(FindMethodByName('TearDown'));
 
-      Its('Roles[0]:verify[3]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;
@@ -1214,7 +1214,7 @@ begin
 
       role := invoker.Roles[0];
 
-      Its('Roles[0]:verify[0]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Setup'));
@@ -1222,12 +1222,12 @@ begin
 
       role.DoInvoke(invoker.Method, val);
 
-      Its('Roles[0]:verify[1]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('TearDown'));
       strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
 
-      Its('Roles[0]:verify[2]:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;

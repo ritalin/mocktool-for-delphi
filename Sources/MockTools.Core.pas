@@ -13,14 +13,14 @@ type
   private
     FCount: integer;
     FVerifire: TPredicate<integer>;
-    FReportProvider: TFunc<integer, string>;
+    FReportProvider: TFunc<TMockInvoker, integer, string>;
   protected
     { IMockRole }
     procedure DoInvoke(const method: TRttiMethod; var outResult: TValue);
-    function Verify: TVerifyResult;
+    function Verify(invoker: TMockInvoker): TVerifyResult;
   public
     function OnVerify(const verifire: TPredicate<integer>): TCountExpectRole;
-    function OnErrorReport(const provider: TFunc<integer, string>): TCountExpectRole;
+    function OnErrorReport(const provider: TFunc<TMockInvoker, integer, string>): TCountExpectRole;
   end;
 
   TMethodCallExpectRole = class(TInterfacedObject, IMockRole)
@@ -32,16 +32,16 @@ type
     FOnInvoke: TProc<TList<integer>>;
     FBeforeVerify: TProc<TList<integer>>;
     FOnVerify: TVerifyProc;
-    FReportProvider: TFunc<string>;
+    FReportProvider: TFunc<TMockInvoker, string>;
   protected
     { IMockRole }
     procedure DoInvoke(const method: TRttiMethod; var outResult: TValue);
-    function Verify: TVerifyResult;
+    function Verify(invoker: TMockInvoker): TVerifyResult;
   public
     constructor Create(const onInvoke: TProc<TList<integer>>; const beforeVerify: TProc<TList<integer>>);
     destructor Destroy; override;
     function OnVerify(const fn: TVerifyProc): TMethodCallExpectRole;
-    function OnErrorReport(const fn: TFunc<string>): TMethodCallExpectRole;
+    function OnErrorReport(const fn: TFunc<TMockInvoker, string>): TMethodCallExpectRole;
   end;
 
   TAbstractSetupRole<T> = class abstract(TInterfacedObject, IMockRole)
@@ -53,7 +53,7 @@ type
   protected
     { IMockRole }
     procedure DoInvoke(const method: TRttiMethod; var outResult: TValue);
-    function Verify: TVerifyResult;
+    function Verify(invoker: TMockInvoker): TVerifyResult;
   public
     constructor Create(const provider: TFunc<TRttiMethod, T>);
   end;
@@ -177,7 +177,7 @@ uses
 { TExpectRole }
 
 function TCountExpectRole.OnErrorReport(
-  const provider: TFunc<integer, string>): TCountExpectRole;
+  const provider: TFunc<TMockInvoker, integer, string>): TCountExpectRole;
 begin
   System.Assert(Assigned(provider));
   FReportProvider := provider;
@@ -199,13 +199,13 @@ begin
   TInterlocked.Increment(FCount);
 end;
 
-function TCountExpectRole.Verify: TVerifyResult;
+function TCountExpectRole.Verify(invoker: TMockInvoker): TVerifyResult;
 begin
   if FVerifire(FCount) then begin
     Result := TVerifyResult.Create('');
   end
   else begin
-    Result := TVerifyResult.Create(FReportProvider(FCount));
+    Result := TVerifyResult.Create(FReportProvider(invoker, FCount));
   end;
 end;
 
@@ -225,7 +225,7 @@ begin
   DoInvokeInternal(FProvider(method), outResult);
 end;
 
-function TAbstractSetupRole<T>.Verify: TVerifyResult;
+function TAbstractSetupRole<T>.Verify(invoker: TMockInvoker): TVerifyResult;
 begin
   if FInvoked then begin
     Result := TVerifyResult.Create('');
@@ -535,7 +535,7 @@ begin
 end;
 
 function TMethodCallExpectRole.OnErrorReport(
-  const fn: TFunc<string>): TMethodCallExpectRole;
+  const fn: TFunc<TMockInvoker, string>): TMethodCallExpectRole;
 begin
   FReportProvider := fn;
   Result := Self;
@@ -556,7 +556,7 @@ begin
   FOnInvoke(FIndicies);
 end;
 
-function TMethodCallExpectRole.Verify: TVerifyResult;
+function TMethodCallExpectRole.Verify(invoker: TMockInvoker): TVerifyResult;
 var
   indicies: TList<integer>;
   i: integer;
@@ -567,7 +567,7 @@ begin
   Assert(Assigned(FReportProvider));
 
   if FIndicies.Count = 0 then begin
-    Exit(TVerifyResult.Create(FReportProvider()));
+    Exit(TVerifyResult.Create(FReportProvider(invoker)));
   end;
 
   indicies := TList<integer>.Create(FIndicies);
@@ -578,11 +578,11 @@ begin
   for i := 0 to indicies.Count-2 do begin
     status := FOnVerify(indicies[i], indicies[i+1]-1, status);
 
-    if status = TStatus.Failed then Exit(TVerifyResult.Create(FReportProvider()));
+    if status = TStatus.Failed then Exit(TVerifyResult.Create(FReportProvider(invoker)));
   end;
 
   if status = TStatus.NoCall then begin
-    Result := TVerifyResult.Create(FReportProvider());
+    Result := TVerifyResult.Create(FReportProvider(invoker));
   end;
 end;
 

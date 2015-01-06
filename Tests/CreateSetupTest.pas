@@ -80,13 +80,13 @@ begin
 
       Its('Invoker:roles[0]:val').Val(val).Should(BeEqualTo(28));
 
-      Its('Verify:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Verify:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
       Its('Invoker:roles[0]:val').Val(val).Should(BeEqualTo(28));
 
-      Its('Verify:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Verify:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;
@@ -124,24 +124,24 @@ begin
 
       Its('Invoker:roles[0]:val').Val(val1).Should(BeEqualTo(28));
 
-      Its('role[0]:Verify[0]:status').Val(role1.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
-      Its('role[1]:Verify[0]:status').Val(role2.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('role[0]:Verify[0]:status').Val(role1.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('role[1]:Verify[0]:status').Val(role2.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       role1.DoInvoke(invoker.Method, val1);
       role2.DoInvoke(invoker.Method, val2);
 
       Its('Invoker:roles[0]:val').Val(val1).Should(BeEqualTo(28));
 
-      Its('role[0]:Verify[1]:status').Val(role1.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
-      Its('role[1]:Verify[1]:status').Val(role2.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('role[0]:Verify[1]:status').Val(role1.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('role[1]:Verify[1]:status').Val(role2.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       role1.DoInvoke(invoker.Method, val1);
       role2.DoInvoke(invoker.Method, val2);
 
       Its('Invoker:roles[0]:val').Val(val1).Should(BeEqualTo(28));
 
-      Its('role[0]:Verify[2]:status').Val(role1.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
-      Its('role[1]:Verify[2]:status').Val(role2.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('role[0]:Verify[2]:status').Val(role1.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('role[1]:Verify[2]:status').Val(role2.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
   );
 end;
@@ -185,14 +185,14 @@ begin
       Its('Invoker:roles[0]:val').Val(val).Should(BeEqualTo(TValue.Empty));
       Its('count').val(count).Should(BeEqualTo(42));
 
-      Its('Verify:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Verify:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       role.DoInvoke(invoker.Method, val);
 
       Its('Invoker:roles[0]:val').Val(val).Should(BeEqualTo(TValue.Empty));
       Its('count').val(count).Should(BeEqualTo(84));
 
-      Its('Verify:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Verify:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;
@@ -239,8 +239,8 @@ begin
       Its('Invoker:roles[0]:val').Val(val1).Should(BeEqualTo(TValue.Empty));
       Its('count').val(count).Should(BeEqualTo(42));
 
-      Its('role[0]:Verify[0]:status').Val(role1.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
-      Its('role[1]:Verify[0]:status').Val(role2.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('role[0]:Verify[0]:status').Val(role1.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('role[1]:Verify[0]:status').Val(role2.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       role1.DoInvoke(invoker.Method, val1);
       role2.DoInvoke(invoker.Method, val2);
@@ -248,8 +248,8 @@ begin
       Its('Invoker:roles[0]:val').Val(val1).Should(BeEqualTo(TValue.Empty));
       Its('count').val(count).Should(BeEqualTo(84));
 
-      Its('role[0]:Verify[1]:status').Val(role1.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
-      Its('role[1]:Verify[1]:status').Val(role2.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+      Its('role[0]:Verify[1]:status').Val(role1.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('role[1]:Verify[1]:status').Val(role2.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       role1.DoInvoke(invoker.Method, val1);
       role2.DoInvoke(invoker.Method, val2);
@@ -257,8 +257,8 @@ begin
       Its('Invoker:roles[0]:val').Val(val1).Should(BeEqualTo(TValue.Empty));
       Its('count').val(count).Should(BeEqualTo(126));
 
-      Its('role[0]:Verify[2]:status').Val(role1.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
-      Its('role[1]:Verify[2]:status').Val(role2.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('role[0]:Verify[2]:status').Val(role1.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('role[1]:Verify[2]:status').Val(role2.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;
@@ -300,7 +300,7 @@ begin
       )
       .Should(BeThrowenException(Exception, 'Error Raised'));
 
-      Its('Verify:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Verify:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       Its('Will raise').Call(
         procedure
@@ -310,7 +310,7 @@ begin
       )
       .Should(BeThrowenException(Exception, 'Error Raised'));
 
-      Its('Verify:status').Val(role.Verify.Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+      Its('Verify:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
   );
 end;

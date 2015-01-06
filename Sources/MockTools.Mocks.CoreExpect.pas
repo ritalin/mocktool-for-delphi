@@ -41,9 +41,9 @@ begin
           end
         )
         .OnErrorReport(
-          function (count: integer): string
+          function (invoker: TMockInvoker; count: integer): string
           begin
-            Result := Format('Not match call count (expect: %d, actual: %d)', [times, count]);
+            Result := Format('A method (%s) did not match call count (expect: %d, actual: %d)', [invoker.Method.Name, times, count]);
           end
         );
     end
@@ -74,9 +74,9 @@ begin
           end
         )
         .OnErrorReport(
-          function (count: integer): string
+          function (invoker: TMockInvoker; count: integer): string
           begin
-            Result := Format('At least, %d times must be called (actual: %d)', [times, count]);
+            Result := Format('At least %d times, a method (%s) must be called (actual: %d)', [times, invoker.Method.Name, count]);
           end
         );
     end
@@ -102,9 +102,9 @@ begin
           end
         )
         .OnErrorReport(
-          function (count: integer): string
+          function (invoker: TMockInvoker; count: integer): string
           begin
-            Result := Format('It must be called greater than %d times (actual: %d)', [times, count]);
+            Result := Format('A method (%s) must be called greater than %d times (actual: %d)', [invoker.Method.Name, times, count]);
           end
         );
     end
@@ -125,9 +125,9 @@ begin
           end
         )
         .OnErrorReport(
-          function (count: integer): string
+          function (invoker: TMockInvoker; count: integer): string
           begin
-            Result := Format('It must be called between %d and %d (actual: %d)', [a, b, count]);
+            Result := Format('A method (%s) must be called between %d and %d (actual: %d)', [invoker.Method.Name, a, b, count]);
           end
         );
     end
@@ -177,9 +177,9 @@ begin
           end
         )
         .OnErrorReport(
-          function: string
+          function (invoker: TMockInvoker): string
           begin
-            Result := Format('Exactly once, a method (%s) must be called', [AMethodName]);
+            Result := Format('Exactly once, a method (%s) must be called before "%s"', [AMethodName, invoker.Method.Name]);
           end
         );
     end
@@ -220,9 +220,9 @@ begin
           end
         )
         .OnErrorReport(
-          function(): string
+          function (invoker: TMockInvoker): string
           begin
-            Result := Format('At least once, a method (%s) must be called', [AMethodName]);
+            Result := Format('At least once, a method (%s) must be called before "%s"', [AMethodName, invoker.Method.Name]);
           end
         );
     end
@@ -272,9 +272,9 @@ begin
           end
         )
         .OnErrorReport(
-          function: string
+          function (invoker: TMockInvoker): string
           begin
-            Result := Format('Exactly once, a method (%s) must be called', [AMethodName]);
+            Result := Format('Exactly once, a method (%s) must be called after "%s"', [AMethodName, invoker.Method.Name]);
           end
         );
     end
@@ -315,9 +315,9 @@ begin
           end
         )
         .OnErrorReport(
-          function(): string
+          function (invoker: TMockInvoker): string
           begin
-            Result := Format('At least once, a method (%s) must be called', [AMethodName]);
+            Result := Format('At least once, a method (%s) must be called after "%s"', [AMethodName, invoker.Method.Name]);
           end
         );
     end

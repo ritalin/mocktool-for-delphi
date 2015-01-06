@@ -61,7 +61,7 @@ type
 
   IMockRole = interface
     procedure DoInvoke(const methodName: TRttiMethod; var outResult: TValue);
-    function Verify: TVerifyResult;
+    function Verify(invoker: TMockInvoker): TVerifyResult;
   end;
 
   ICallerInfo = interface
