@@ -6,6 +6,7 @@ Delphi test double library for DUnit / DUnitX
 Inspired by [VSoftTechnologies/Delphi-Mocks](https://github.com/VSoftTechnologies/Delphi-Mocks)
 
 VSoftTechnologies/Delphi-Mocks is very awesome !
+
 But VSoftTechnologies/Delphi-Mocks is
 
 * Only setup or a expection can not specify one mock method.
