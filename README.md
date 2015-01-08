@@ -29,7 +29,8 @@ and [ritalin/haxe-should](https://github.com/ritalin/haxe-should)
 ## Usage
 1. Add unit: *MockTools.Mocks* in uses declative.
 2. Arrange mock object.
-3. Act
+3. Act it.
+4. Assert expection.
 
 ## Examples 
 
