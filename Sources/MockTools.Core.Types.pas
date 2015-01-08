@@ -9,6 +9,18 @@ uses
 type
   IMockRole = interface;
   IMockSession = interface;
+  IMockExpect = interface;
+
+  TMockExpectWrapper = record
+  private
+    FExpect: IMockExpect;
+  public
+    class operator LogicalNot(expect: TMockExpectWrapper): TMockExpectWrapper;
+  public
+    function CreateRole(const callerInfo: IMockSession): IMockRole;
+  public
+    class function Create(const expect: IMockExpect): TMockExpectWrapper; static;
+  end;
 
   IWhen<T> = interface
     function GetSubject: T;
@@ -21,7 +33,7 @@ type
   end;
 
   IWhenOrExpect<T> = interface(IWhen<T>)
-    function Expect(const expect: IMockExpect): IWhen<T>;
+    function Expect(const expect: TMockExpectWrapper): IWhen<T>;
   end;
 
   IMockSetup<T> = interface
@@ -34,14 +46,19 @@ type
   TVerifyResult = record
   public type
     TStatus = (Passed, Failed);
-  private
+    TOption = (None, Negate);
+  private var
+    FReportPrivider: TFunc<TOption, string>;
     FStatus: TStatus;
-    FReport: string;
+    FOption: TOption;
+  private
+    function GetReportText: string;
+    function GetStatus: TStatus;
   public
-    property Status: TStatus read FStatus;
-    property Report: string read FReport;
+    property Status: TStatus read GetStatus;
+    property Report: string read GetReportText;
   public
-    class function Create(const report: string): TVerifyResult; static;
+    class function Create(const provider: TFunc<TOption, string>; const status: TStatus; const opt: TOption): TVerifyResult; overload; static;
   end;
 
   TMockAction = record
@@ -114,6 +131,26 @@ type
     property Session: IMockSession read GetSession;
   end;
 
+  TNotExpect = class(TInterfacedObject, IMockExpect)
+  private type
+    TMockRoleNot = class(TInterfacedObject, IMockRole)
+    private
+      FParentRole: IMockRole;
+    protected
+      procedure DoInvoke(const methodName: TRttiMethod; var outResult: TValue);
+      function Verify(invoker: TMockAction): TVerifyResult;
+    public
+      constructor Create(const role: IMockRole);
+    end;
+  private
+    FParentExpect: IMockExpect;
+  protected
+    { IMockExpect }
+    function CreateRole(const callerInfo: IMockSession): IMockRole;
+  public
+    constructor Create(const expect: IMockExpect);
+  end;
+
 implementation
 
 { TRoleInvoker }
@@ -128,16 +165,87 @@ end;
 
 { TVerifyResult }
 
-class function TVerifyResult.Create(const report: string): TVerifyResult;
+class function TVerifyResult.Create(const provider: TFunc<TOption, string>;
+  const status: TStatus; const opt: TOption): TVerifyResult;
 begin
-  if report = '' then begin
-    Result.FStatus := TStatus.Passed;
+  Assert(Assigned(provider));
+
+  Result.FReportPrivider := provider;
+  Result.FStatus := status;
+  Result.FOption := opt;
+end;
+
+function TVerifyResult.GetReportText: string;
+begin
+  Result := FReportPrivider(FOption);
+end;
+
+function TVerifyResult.GetStatus: TStatus;
+begin
+  if (FStatus = TStatus.Failed) xor (FOption = TOption.Negate) then begin
+    Result := TStatus.Failed;
   end
   else begin
-    Result.FStatus := TStatus.Failed;
+    Result := TStatus.Passed;
   end;
+end;
 
-  Result.FReport := report;
+{ TExpectWrapper }
+
+class function TMockExpectWrapper.Create(const expect: IMockExpect): TMockExpectWrapper;
+begin
+  Assert(Assigned(expect));
+  Result.FExpect := expect;
+end;
+
+function TMockExpectWrapper.CreateRole(const callerInfo: IMockSession): IMockRole;
+begin
+  Result := FExpect.CreateRole(callerInfo);
+end;
+
+class operator TMockExpectWrapper.LogicalNot(
+  expect: TMockExpectWrapper): TMockExpectWrapper;
+begin
+  Result := TMockExpectWrapper.Create(TNotExpect.Create(expect.FExpect));
+end;
+
+{ TNotExpect }
+
+constructor TNotExpect.Create(const expect: IMockExpect);
+begin
+  Assert(Assigned(expect));
+  FParentExpect := expect;
+end;
+
+function TNotExpect.CreateRole(const callerInfo: IMockSession): IMockRole;
+begin
+  Result := TMockRoleNot.Create(FParentExpect.CreateRole(callerInfo));
+end;
+
+{ TNotExpect.TMockRoleNot }
+
+constructor TNotExpect.TMockRoleNot.Create(const role: IMockRole);
+begin
+  Assert(Assigned(role));
+  FParentRole := role;
+end;
+
+procedure TNotExpect.TMockRoleNot.DoInvoke(const methodName: TRttiMethod;
+  var outResult: TValue);
+begin
+  FParentRole.DoInvoke(methodName, outResult);
+end;
+
+function TNotExpect.TMockRoleNot.Verify(invoker: TMockAction): TVerifyResult;
+begin
+  Result := FParentRole.Verify(invoker);
+
+  if Result.FOption = TVerifyResult.TOption.Negate then begin
+    Result.FOption := TVerifyResult.TOption.None;
+  end
+  else begin
+    Result.FOption := TVerifyResult.TOption.Negate;
+  end;
 end;
 
 end.

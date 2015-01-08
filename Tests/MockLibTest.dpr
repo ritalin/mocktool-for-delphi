@@ -19,7 +19,8 @@ uses
   CreateSetupTest in 'CreateSetupTest.pas',
   CreateExpectRolesTest in 'CreateExpectRolesTest.pas',
   InterfaceRecordingProxyTest in 'InterfaceRecordingProxyTest.pas',
-  MockTest in 'MockTest.pas';
+  MockTest in 'MockTest.pas',
+  ExpectConbinationTest in 'ExpectConbinationTest.pas';
 
 var
   runner : ITestRunner;

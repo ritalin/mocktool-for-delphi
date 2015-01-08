@@ -127,6 +127,7 @@
         <DCCReference Include="CreateExpectRolesTest.pas"/>
         <DCCReference Include="InterfaceRecordingProxyTest.pas"/>
         <DCCReference Include="MockTest.pas"/>
+        <DCCReference Include="ExpectConbinationTest.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

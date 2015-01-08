@@ -14,6 +14,7 @@ type
     FRecordProxy: IProxy<T>;
     FVirtualProxy: IReadOnlyProxy<T>;
     function BridgeProxy<U: IInterface>(const fromType, toType: PTypeInfo): IProxy<U>;
+    class function ReportNoError(opt: TVerifyResult.TOption): string; static;
   public
     class operator Implicit(const Value: TMock<T>): T;
 
@@ -61,6 +62,11 @@ begin
   Result := TMockSetup<T>.Create(TRoleInvokerBuilder<T>.Create(FRecordProxy, FSession));
 end;
 
+class function TMock<T>.ReportNoError(opt: TVerifyResult.TOption): string;
+begin
+  Result := '';
+end;
+
 procedure TMock<T>.VerifyAll;
 begin
   Self.VerifyAll(false);
@@ -84,7 +90,7 @@ begin
     end;
   end;
 
-  Result := TVerifyResult.Create('');
+  Result := TVerifyResult.Create(ReportNoError, TVerifyResult.TStatus.Passed, TVerifyResult.TOption.None);
 end;
 
 function TMock<T>.Instance: T;

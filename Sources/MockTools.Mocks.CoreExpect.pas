@@ -7,17 +7,17 @@ uses
   MockTools.Core.Types
 ;
 
-function Once : IMockExpect;
-function Never : IMockExpect;
-function AtLeastOnce : IMockExpect;
-function AtLeast(const times : integer) : IMockExpect;
-function AtMost(const times : integer) : IMockExpect;
-function Between(const a, b : integer) : IMockExpect;
-function Exactly(const times: integer): IMockExpect;
-function Before(const AMethodName : string) : IMockExpect;
-function BeforeOnce(const AMethodName : string) : IMockExpect;
-function After(const AMethodName : string) : IMockExpect;
-function AfterOnce(const AMethodName : string) : IMockExpect;
+function Once : TMockExpectWrapper;
+function Never : TMockExpectWrapper;
+function AtLeastOnce : TMockExpectWrapper;
+function AtLeast(const times : integer) : TMockExpectWrapper;
+function AtMost(const times : integer) : TMockExpectWrapper;
+function Between(const a, b : integer) : TMockExpectWrapper;
+function Exactly(const times: integer): TMockExpectWrapper;
+function Before(const AMethodName : string) : TMockExpectWrapper;
+function BeforeOnce(const AMethodName : string) : TMockExpectWrapper;
+function After(const AMethodName : string) : TMockExpectWrapper;
+function AfterOnce(const AMethodName : string) : TMockExpectWrapper;
 
 implementation
 
@@ -25,11 +25,22 @@ uses
   MockTools.Core
 ;
 
+function EvalOption(negate: boolean): string;
+begin
+  if negate then begin
+    Result := ' not';
+  end
+  else begin
+    Result := '';
+  end;
+
+end;
+
 { TExpects }
 
-function Exactly(const times: integer): IMockExpect;
+function Exactly(const times: integer): TMockExpectWrapper;
 begin
-  Result := TExpectRoleFactory.Create(
+  Result := TExpectRoleFactory.CreateAsWrapper(
     function (callerInfo: IMockSession): IMockRole
     begin
       Result :=
@@ -41,28 +52,30 @@ begin
           end
         )
         .OnErrorReport(
-          function (invoker: TMockAction; count: integer): string
+          function (invoker: TMockAction; count: integer; opt: TVerifyResult.TOption): string
           begin
-            Result := Format('A method (%s) did not match call count (expect: %d, actual: %d)', [invoker.Method.Name, times, count]);
+            Result := Format('A method (%s), call count must%s match (expect: %d, actual: %d)', [
+              invoker.Method.Name, EvalOption(not (opt in [TVerifyResult.TOption.Negate])), times, count
+            ]);
           end
         );
     end
   );
 end;
 
-function Never: IMockExpect;
+function Never: TMockExpectWrapper;
 begin
   Result := Exactly(0);
 end;
 
-function Once: IMockExpect;
+function Once: TMockExpectWrapper;
 begin
   Result := Exactly(1);
 end;
 
-function AtLeast(const times: integer): IMockExpect;
+function AtLeast(const times: integer): TMockExpectWrapper;
 begin
-  Result := TExpectRoleFactory.Create(
+  Result := TExpectRoleFactory.CreateAsWrapper(
     function (callerInfo: IMockSession): IMockRole
     begin
       Result :=
@@ -74,23 +87,25 @@ begin
           end
         )
         .OnErrorReport(
-          function (invoker: TMockAction; count: integer): string
+          function (invoker: TMockAction; count: integer; opt: TVerifyResult.TOption): string
           begin
-            Result := Format('At least %d times, a method (%s) must be called (actual: %d)', [times, invoker.Method.Name, count]);
+            Result := Format('At least %d times, a method (%s) must%s be called (actual: %d)', [
+              times, EvalOption(opt in [TVerifyResult.TOption.Negate]), invoker.Method.Name, count
+            ]);
           end
         );
     end
   );
 end;
 
-function AtLeastOnce: IMockExpect;
+function AtLeastOnce: TMockExpectWrapper;
 begin
   Result := AtLeast(1);
 end;
 
-function AtMost(const times: integer): IMockExpect;
+function AtMost(const times: integer): TMockExpectWrapper;
 begin
-  Result := TExpectRoleFactory.Create(
+  Result := TExpectRoleFactory.CreateAsWrapper(
     function (callerInfo: IMockSession): IMockRole
     begin
       Result :=
@@ -102,18 +117,20 @@ begin
           end
         )
         .OnErrorReport(
-          function (invoker: TMockAction; count: integer): string
+          function (invoker: TMockAction; count: integer; opt: TVerifyResult.TOption): string
           begin
-            Result := Format('A method (%s) must be called greater than %d times (actual: %d)', [invoker.Method.Name, times, count]);
+            Result := Format('A method (%s) must%s be called greater than %d times (actual: %d)', [
+              invoker.Method.Name, EvalOption(opt in [TVerifyResult.TOption.Negate]), times, count
+            ]);
           end
         );
     end
   );
 end;
 
-function Between(const a, b: integer): IMockExpect;
+function Between(const a, b: integer): TMockExpectWrapper;
 begin
-  Result := TExpectRoleFactory.Create(
+  Result := TExpectRoleFactory.CreateAsWrapper(
     function (callerInfo: IMockSession): IMockRole
     begin
       Result :=
@@ -125,18 +142,20 @@ begin
           end
         )
         .OnErrorReport(
-          function (invoker: TMockAction; count: integer): string
+          function (invoker: TMockAction; count: integer; opt: TVerifyResult.TOption): string
           begin
-            Result := Format('A method (%s) must be called between %d and %d (actual: %d)', [invoker.Method.Name, a, b, count]);
+            Result := Format('A method (%s) must%s be called between %d and %d (actual: %d)', [
+              invoker.Method.Name, EvalOption(opt in [TVerifyResult.TOption.Negate]), a, b, count
+            ]);
           end
         );
     end
   );
 end;
 
-function BeforeOnce(const AMethodName: string): IMockExpect;
+function BeforeOnce(const AMethodName: string): TMockExpectWrapper;
 begin
-  Result := TExpectRoleFactory.Create(
+  Result := TExpectRoleFactory.CreateAsWrapper(
     function (callerInfo: IMockSession): IMockRole
     begin
       Result :=
@@ -177,18 +196,20 @@ begin
           end
         )
         .OnErrorReport(
-          function (invoker: TMockAction): string
+          function (invoker: TMockAction; opt: TVerifyResult.TOption): string
           begin
-            Result := Format('Exactly once, a method (%s) must be called before "%s"', [AMethodName, invoker.Method.Name]);
+            Result := Format('Exactly once, a method (%s) must%s be called before "%s"', [
+              AMethodName, EvalOption(opt in [TVerifyResult.TOption.Negate]), invoker.Method.Name
+            ]);
           end
         );
     end
   );
 end;
 
-function Before(const AMethodName: string): IMockExpect;
+function Before(const AMethodName: string): TMockExpectWrapper;
 begin
-  Result := TExpectRoleFactory.Create(
+  Result := TExpectRoleFactory.CreateAsWrapper(
     function (callerInfo: IMockSession): IMockRole
     begin
       Result :=
@@ -220,18 +241,20 @@ begin
           end
         )
         .OnErrorReport(
-          function (invoker: TMockAction): string
+          function (invoker: TMockAction; opt: TVerifyResult.TOption): string
           begin
-            Result := Format('At least once, a method (%s) must be called before "%s"', [AMethodName, invoker.Method.Name]);
+            Result := Format('At least once, a method (%s) must%s be called before "%s"', [
+              AMethodName, EvalOption(opt in [TVerifyResult.TOption.Negate]), invoker.Method.Name
+            ]);
           end
         );
     end
   );
 end;
 
-function AfterOnce(const AMethodName: string): IMockExpect;
+function AfterOnce(const AMethodName: string): TMockExpectWrapper;
 begin
-  Result := TExpectRoleFactory.Create(
+  Result := TExpectRoleFactory.CreateAsWrapper(
     function (callerInfo: IMockSession): IMockRole
     begin
       Result :=
@@ -272,18 +295,20 @@ begin
           end
         )
         .OnErrorReport(
-          function (invoker: TMockAction): string
+          function (invoker: TMockAction; opt: TVerifyResult.TOption): string
           begin
-            Result := Format('Exactly once, a method (%s) must be called after "%s"', [AMethodName, invoker.Method.Name]);
+            Result := Format('Exactly once, a method (%s) must%s be called after "%s"', [
+              AMethodName, EvalOption(opt in [TVerifyResult.TOption.Negate]), invoker.Method.Name
+            ]);
           end
         );
     end
   );
 end;
 
-function After(const AMethodName: string): IMockExpect;
+function After(const AMethodName: string): TMockExpectWrapper;
 begin
-  Result := TExpectRoleFactory.Create(
+  Result := TExpectRoleFactory.CreateAsWrapper(
     function (callerInfo: IMockSession): IMockRole
     begin
       Result :=
@@ -315,9 +340,11 @@ begin
           end
         )
         .OnErrorReport(
-          function (invoker: TMockAction): string
+          function (invoker: TMockAction; opt: TVerifyResult.TOption): string
           begin
-            Result := Format('At least once, a method (%s) must be called after "%s"', [AMethodName, invoker.Method.Name]);
+            Result := Format('At least once, a method (%s) must%s be called after "%s"', [
+              AMethodName, EvalOption(opt in [TVerifyResult.TOption.Negate]), invoker.Method.Name
+            ]);
           end
         );
     end
