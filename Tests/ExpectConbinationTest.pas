@@ -40,7 +40,7 @@ begin
     .When.CallCount
   ;
   mock
-    .Setup.WillExecute(
+    .Stub.WillExecute(
       procedure
       begin
       end
@@ -170,7 +170,7 @@ begin
     )
     .When.CountUp
   ;
-  mock.Setup<IShowing>.WillReturn('FizzBazz').When.ToString;
+  mock.Stub<IShowing>.WillReturn('FizzBazz').When.ToString;
 
   Its('mock.verify[0]').Call(
     procedure
@@ -232,7 +232,7 @@ begin
     .When.CallCount
   ;
   mock
-    .Setup.WillExecute(
+    .Stub.WillExecute(
       procedure
       begin
       end
@@ -330,7 +330,7 @@ begin
     .When.CallCount
   ;
   mock
-    .Setup.WillExecute(
+    .Stub.WillExecute(
       procedure
       begin
       end

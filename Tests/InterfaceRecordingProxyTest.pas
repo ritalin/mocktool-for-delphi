@@ -141,7 +141,7 @@ begin
 
   Its('Actions:length:before').Val(Length(storage.Actions)).Should(BeEqualTo(0));
 
-  setup := TMockSetup<ICounter>.Create(builder);
+  setup := TMockSetup<ICounter>.Create(builder, false);
   setup
     .WillReturn(108)
     .Expect(Exactly(2))

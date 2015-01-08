@@ -48,6 +48,7 @@ type
   private
     FInvoked: boolean;
     FProvider: TFunc<TRttiMethod, T>;
+    FStub: Boolean;
     function FailedReportText(action: TMockAction): TFunc<TVerifyResult.TOption, string>;
   protected
     procedure DoInvokeInternal(const willReturn: T; var outResult: TValue); virtual; abstract;
@@ -56,7 +57,7 @@ type
     procedure DoInvoke(const method: TRttiMethod; var outResult: TValue);
     function Verify(invoker: TMockAction): TVerifyResult;
   public
-    constructor Create(const provider: TFunc<TRttiMethod, T>);
+    constructor Create(const provider: TFunc<TRttiMethod, T>; const isStub: boolean);
   end;
 
   TMethodSetupRole = class(TAbstractSetupRole<TValue>)
@@ -99,6 +100,7 @@ type
   TMockSetup<T> = class(TInterfacedObject, IMockSetup<T>)
   private
     FBuilder: IMockRoleBuilder<T>;
+    FIsStub: boolean;
   protected
     { IMockSetup<T> }
     function WillReturn(value: TValue): IWhenOrExpect<T>; overload;
@@ -106,7 +108,7 @@ type
     function WillExecute(const fn: TFunc<TValue>): IWhenOrExpect<T>; overload;
     function WillRaise(const provider: TFunc<Exception>): IWhen<T>; overload;
   public
-    constructor Create(const builder: IMockRoleBuilder<T>);
+    constructor Create(const builder: IMockRoleBuilder<T>; const isStub: boolean);
   end;
 
   TRoleInvokerBuilder<T> = class(TInterfacedObject, IMockRoleBuilder<T>)
@@ -292,11 +294,12 @@ end;
 
 { TAbstractSetupRole<T> }
 
-constructor TAbstractSetupRole<T>.Create(const provider: TFunc<TRttiMEthod, T>);
+constructor TAbstractSetupRole<T>.Create(const provider: TFunc<TRttiMEthod, T>; const isStub: boolean);
 begin
   System.Assert(Assigned(provider));
 
   FProvider := provider;
+  FStub := isStub;
 end;
 
 procedure TAbstractSetupRole<T>.DoInvoke(const method: TRttiMEthod; var outResult: TValue);
@@ -320,7 +323,7 @@ function TAbstractSetupRole<T>.Verify(invoker: TMockAction): TVerifyResult;
 var
   status: TVerifyResult.TStatus;
 begin
-  if FInvoked then begin
+  if FInvoked or FStub then begin
     status := TVerifyResult.TStatus.Passed;
   end
   else begin
@@ -605,9 +608,10 @@ end;
 
 { TMockSetup<T> }
 
-constructor TMockSetup<T>.Create(const builder: IMockRoleBuilder<T>);
+constructor TMockSetup<T>.Create(const builder: IMockRoleBuilder<T>; const isStub: boolean);
 begin
   FBuilder := builder;
+  FIsStub := isStub;
 end;
 
 function TMockSetup<T>.WillReturn(value: TValue): IWhenOrExpect<T>;
@@ -626,7 +630,8 @@ begin
     function (method: TRttiMethod): TValue
     begin
       Result := fn();
-    end
+    end,
+    FIsStub
   ));
 
   Result := TWhen<T>.Create(FBuilder);
@@ -651,7 +656,8 @@ begin
     function (method: TRttiMethod): Exception
     begin
       Result := provider();
-    end
+    end,
+    FIsStub
   ));
 
   Result := TWhen<T>.Create(FBuilder);

@@ -20,6 +20,10 @@ type
 
     function Setup: IMockSetup<T>; overload;
     function Setup<U: IInterface>: IMockSetup<U>; overload;
+
+    function Stub: IMockSetup<T>; overload;
+    function Stub<U: IInterface>: IMockSetup<U>; overload;
+
     procedure VerifyAll; overload;
     function VerifyAll(const noThrow: boolean): TVerifyResult; overload;
 
@@ -59,7 +63,7 @@ end;
 
 function TMock<T>.Setup: IMockSetup<T>;
 begin
-  Result := TMockSetup<T>.Create(TRoleInvokerBuilder<T>.Create(FRecordProxy, FSession));
+  Result := TMockSetup<T>.Create(TRoleInvokerBuilder<T>.Create(FRecordProxy, FSession), false);
 end;
 
 class function TMock<T>.ReportNoError(opt: TVerifyResult.TOption): string;
@@ -123,7 +127,19 @@ function TMock<T>.Setup<U>: IMockSetup<U>;
 begin
   Result := TMockSetup<U>.Create(TRoleInvokerBuilder<U>.Create(
     Self.BridgeProxy<U>(TypeInfo(T), TypeInfo(U)), FSession
-  ));
+  ), false);
+end;
+
+function TMock<T>.Stub<U>: IMockSetup<U>;
+begin
+  Result := TMockSetup<U>.Create(TRoleInvokerBuilder<U>.Create(
+    Self.BridgeProxy<U>(TypeInfo(T), TypeInfo(U)), FSession
+  ), true);
+end;
+
+function TMock<T>.Stub: IMockSetup<T>;
+begin
+  Result := TMockSetup<T>.Create(TRoleInvokerBuilder<T>.Create(FRecordProxy, FSession), true);
 end;
 
 { TMock }

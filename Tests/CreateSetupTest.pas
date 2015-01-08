@@ -47,7 +47,7 @@ begin
   Its('Roles:Length').Val(Length(builder.Roles)).Should(BeEqualTo(0));
   Its('Actions:Length').Val(Length(storage.Actions)).Should(BeEqualTo(0));
 
-  proc(TMockSetup<TCounterObject>.Create(builder), storage);
+  proc(TMockSetup<TCounterObject>.Create(builder, false), storage);
 
   Its('Now Recording:after').Val(proxy.Proxifying).Should(not BeTrue);
 end;
