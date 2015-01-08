@@ -11,7 +11,7 @@ type
   [TestFixture]
   _Create_Setup_Roles = class(TObject)
   private
-    procedure TestImpl(const proc: TProc<IMockSetup<TCounterObject>, IActionStorage>);
+    procedure TestImpl(const proc: TProc<IMockSetup<TCounterObject>, IMockSessionRecorder>);
   public
     [Test] procedure _Setup_As_WillReturn;
     [Test] procedure _Setup_As_WillExecute;
@@ -31,34 +31,34 @@ uses
 { _CreateSetup_Test }
 
 procedure _Create_Setup_Roles.TestImpl(
-  const proc: TProc<IMockSetup<TCounterObject>, IActionStorage>);
+  const proc: TProc<IMockSetup<TCounterObject>, IMockSessionRecorder>);
 var
-  proxy: IRecordProxy<TCounterObject>;
-  storage: IActionStorage;
-  builder: IRoleInvokerBuilder<TCounterObject>;
+  proxy: IProxy<TCounterObject>;
+  storage: IMockSessionRecorder;
+  builder: IMockRoleBuilder<TCounterObject>;
 begin
   proxy := TObjectRecordProxy<TCounterObject>.Create;
-  storage := TActionStorage.Create;
+  storage := TMockSessionRecorder.Create;
 
   builder := TRoleInvokerBuilder<TCounterObject>.Create(proxy, storage);
 
-  Its('Now Recording').Val(proxy.Recording).Should(BeTrue);
+  Its('Now Recording:before').Val(proxy.Proxifying).Should(BeTrue);
 
   Its('Roles:Length').Val(Length(builder.Roles)).Should(BeEqualTo(0));
   Its('Actions:Length').Val(Length(storage.Actions)).Should(BeEqualTo(0));
 
   proc(TMockSetup<TCounterObject>.Create(builder), storage);
 
-  Its('Now Recording').Val(proxy.Recording).Should(not BeTrue);
+  Its('Now Recording:after').Val(proxy.Proxifying).Should(not BeTrue);
 end;
 
 procedure _Create_Setup_Roles._Setup_As_WillReturn;
 begin
   TestImpl(
-    procedure (setup: IMockSetup<TCounterObject>; storage: IActionStorage)
+    procedure (setup: IMockSetup<TCounterObject>; storage: IMockSessionRecorder)
     var
       when1: IWhenOrExpect<TCounterObject>;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       role: IMockRole;
       val: TValue;
     begin
@@ -94,10 +94,10 @@ end;
 procedure _Create_Setup_Roles._Setup_As_WillReturn_With_Expect;
 begin
   TestImpl(
-    procedure (setup: IMockSetup<TCounterObject>; storage: IActionStorage)
+    procedure (setup: IMockSetup<TCounterObject>; storage: IMockSessionRecorder)
     var
       when1: IWhenOrExpect<TCounterObject>;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       role1, role2: IMockRole;
       val1, val2: TValue;
     begin
@@ -149,11 +149,11 @@ end;
 procedure _Create_Setup_Roles._Setup_As_WillExecute;
 begin
   TestImpl(
-    procedure (setup: IMockSetup<TCounterObject>; storage: IActionStorage)
+    procedure (setup: IMockSetup<TCounterObject>; storage: IMockSessionRecorder)
     var
       count: integer;
       when1: IWhenOrExpect<TCounterObject>;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       role: IMockRole;
       val: TValue;
     begin
@@ -200,10 +200,10 @@ end;
 procedure _Create_Setup_Roles._Setup_As_WillExecute_With_Expect;
 begin
   TestImpl(
-    procedure (setup: IMockSetup<TCounterObject>; storage: IActionStorage)
+    procedure (setup: IMockSetup<TCounterObject>; storage: IMockSessionRecorder)
     var
       count: integer;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       role1, role2: IMockRole;
       val1, val2: TValue;
     begin
@@ -266,10 +266,10 @@ end;
 procedure _Create_Setup_Roles._Setup_As_WillRaise;
 begin
   TestImpl(
-    procedure (setup: IMockSetup<TCounterObject>; storage: IActionStorage)
+    procedure (setup: IMockSetup<TCounterObject>; storage: IMockSessionRecorder)
     var
       when1: IWhen<TCounterObject>;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       role: IMockRole;
       val: TValue;
     begin

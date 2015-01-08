@@ -14,7 +14,7 @@ type
   _Create_Expect_Roles = class(TObject)
   private
     procedure TestImpl<T: class>(
-      const proc: TProc<IWhenOrExpect<T>, IActionStorage>);
+      const proc: TProc<IWhenOrExpect<T>, IMockSessionRecorder>);
   public
     [Test] procedure _Create_Exactly;
     [Test] procedure _Create_Once;
@@ -60,36 +60,36 @@ uses
 { _Create_Expect_Roles }
 
 procedure _Create_Expect_Roles.TestImpl<T>(
-  const proc: TProc<IWhenOrExpect<T>, IActionStorage>);
+  const proc: TProc<IWhenOrExpect<T>, IMockSessionRecorder>);
 var
-  proxy: IRecordProxy<T>;
-  strage: IActionStorage;
-  builder: IRoleInvokerBuilder<T>;
+  proxy: IProxy<T>;
+  strage: IMockSessionRecorder;
+  builder: IMockRoleBuilder<T>;
   expect: IWhenOrExpect<T>;
 begin
   proxy := TObjectRecordProxy<T>.Create;
-  strage := TActionStorage.Create;
+  strage := TMockSessionRecorder.Create;
 
   builder := TRoleInvokerBuilder<T>.Create(proxy, strage);
   expect := TWhen<T>.Create(builder);
 
-  Its('Now Recording').Val(proxy.Recording).Should(BeTrue);
+  Its('Now Recording:before').Val(proxy.Proxifying).Should(BeTrue);
 
   Its('Roles:Length').Val(Length(builder.Roles)).Should(BeEqualTo(0));
   Its('Actions:Length').Val(Length(strage.Actions)).Should(BeEqualTo(0));
 
   proc(expect, strage);
 
-  Its('Now Recording').Val(proxy.Recording).Should(not BeTrue);
+  Its('Now Recording:after').Val(proxy.Proxifying).Should(not BeTrue);
 end;
 
 procedure _Create_Expect_Roles._Create_Exactly;
 begin
   Self.TestImpl<TCounterObject>(
-    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -126,10 +126,10 @@ end;
 procedure _Create_Expect_Roles._Create_Once;
 begin
   Self.TestImpl<TCounterObject>(
-    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -166,10 +166,10 @@ end;
 procedure _Create_Expect_Roles._Create_Never;
 begin
   Self.TestImpl<TCounterObject>(
-    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -206,10 +206,10 @@ end;
 procedure _Create_Expect_Roles._Create_At_Least;
 begin
   Self.TestImpl<TCounterObject>(
-    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -246,10 +246,10 @@ end;
 procedure _Create_Expect_Roles._Create_At_Least_Once;
 begin
   Self.TestImpl<TCounterObject>(
-    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -286,10 +286,10 @@ end;
 procedure _Create_Expect_Roles._Create_At_Most;
 begin
   Self.TestImpl<TCounterObject>(
-    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -326,10 +326,10 @@ end;
 procedure _Create_Expect_Roles._Create_Between;
 begin
   Self.TestImpl<TCounterObject>(
-    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCounterObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -419,10 +419,10 @@ end;
 procedure _Create_Expect_Roles._Create_BeforeOnce_NoCall;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -451,10 +451,10 @@ end;
 procedure _Create_Expect_Roles._Create_BeforeOnce_NoCall_2;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -485,10 +485,10 @@ end;
 procedure _Create_Expect_Roles._Create_BeforeOnce_Valid;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -520,10 +520,10 @@ end;
 procedure _Create_Expect_Roles._Create_BeforeOnce_OverCalled;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -556,10 +556,10 @@ end;
 procedure _Create_Expect_Roles._Create_BeforeOnce_OverCalled_2;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -598,10 +598,10 @@ end;
 procedure _Create_Expect_Roles._Create_Before_NoCall;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -630,10 +630,10 @@ end;
 procedure _Create_Expect_Roles._Create_Before_NoCall_2;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -678,10 +678,10 @@ end;
 procedure _Create_Expect_Roles._Create_Before_Valid;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -728,10 +728,10 @@ end;
 procedure _Create_Expect_Roles._Create_Before_OverCalled;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -766,10 +766,10 @@ end;
 procedure _Create_Expect_Roles._Create_Before_OverCalled_2;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -816,10 +816,10 @@ end;
 procedure _Create_Expect_Roles._Create_AfterOnce_NoCall;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -854,10 +854,10 @@ end;
 procedure _Create_Expect_Roles._Create_AfterOnce_NoCall_2;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -888,10 +888,10 @@ end;
 procedure _Create_Expect_Roles._Create_AfterOnce_OverCalled;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -927,10 +927,10 @@ end;
 procedure _Create_Expect_Roles._Create_AfterOnce_OverCalled_2;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -980,10 +980,10 @@ end;
 procedure _Create_Expect_Roles._Create_AfterOnce_Valid;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -1019,10 +1019,10 @@ end;
 procedure _Create_Expect_Roles._Create_After_NoCall;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -1055,10 +1055,10 @@ end;
 procedure _Create_Expect_Roles._Create_After_NoCall_2;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -1103,10 +1103,10 @@ end;
 procedure _Create_Expect_Roles._Create_After_OverCalled;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -1146,10 +1146,10 @@ end;
 procedure _Create_Expect_Roles._Create_After_OverCalled_2;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock
@@ -1194,10 +1194,10 @@ end;
 procedure _Create_Expect_Roles._Create_After_Valid;
 begin
   Self.TestImpl<TCallFlowObject>(
-    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IActionStorage)
+    procedure (mock: IWhenOrExpect<TCallFlowObject>; strage: IMockSessionRecorder)
     var
       role: IMockRole;
-      invoker: TMockInvoker;
+      invoker: TMockAction;
       val: TValue;
     begin
       mock

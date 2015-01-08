@@ -3,12 +3,12 @@ unit MockTools.Core.Types;
 interface
 
 uses
-  System.SysUtils, System.Rtti, System.Generics.Collections
+  System.SysUtils, System.Rtti, System.TypInfo, System.Generics.Collections
 ;
 
 type
   IMockRole = interface;
-  ICallerInfo = interface;
+  IMockSession = interface;
 
   IWhen<T> = interface
     function GetSubject: T;
@@ -17,7 +17,7 @@ type
   end;
 
   IMockExpect = interface
-    function CreateRole(const callerInfo: ICallerInfo): IMockRole;
+    function CreateRole(const callerInfo: IMockSession): IMockRole;
   end;
 
   IWhenOrExpect<T> = interface(IWhen<T>)
@@ -44,7 +44,7 @@ type
     class function Create(const report: string): TVerifyResult; static;
   end;
 
-  TMockInvoker = record
+  TMockAction = record
   private
     FMethod: TRttiMethod;
     FArgs: TArray<TValue>;
@@ -56,67 +56,70 @@ type
   public
     class function Create(
       const method: TRttiMethod; const args: TArray<TValue>;
-      const roles: TArray<IMockRole>): TMockInvoker; static;
+      const roles: TArray<IMockRole>): TMockAction; static;
   end;
 
   IMockRole = interface
     procedure DoInvoke(const methodName: TRttiMethod; var outResult: TValue);
-    function Verify(invoker: TMockInvoker): TVerifyResult;
+    function Verify(invoker: TMockAction): TVerifyResult;
   end;
 
-  ICallerInfo = interface
+  IMockSession = interface
     ['{8E85E18C-881A-4A88-9332-AFD30592582A}']
-    function GetCallstacks: TList<TRttiMethod>;
-  end;
-
-  IActionStorage = interface(ICallerInfo)
-    ['{C96895DC-9236-4A91-ABA6-4883D9B37A27}']
-    procedure RecordInvoker(const invoker: TMockInvoker);
-    function GetActions: TArray<TMockInvoker>;
+    function GetActions: TArray<TMockAction>;
+    function TryFindAction(const method: TRttiMethod; const args: TArray<TValue>; out outResult: TMockAction): boolean;
     function GetCallstacks: TList<TRttiMethod>;
 
-    property Actions: TArray<TMockInvoker> read GetActions;
+    property Actions: TArray<TMockAction> read GetActions;
     property Callstacks: TList<TRttiMethod> read GetCallstacks;
   end;
 
-  IRecordable = interface
-    ['{68839590-924F-4889-976D-46EF36919FE6}']
-    procedure BeginRecord(const callback: TInterceptBeforeNotify);
-    function IsRecording: boolean;
+  IMockSessionRecorder = interface(IMockSession)
+    ['{C96895DC-9236-4A91-ABA6-4883D9B37A27}']
+    procedure RecordAction(const invoker: TMockAction);
   end;
 
-  IProxy<T> = interface
+  IReadOnlyProxy<T> = interface
     function GetSubject: T;
-    procedure Implements(const intf: array of TGUID); overload;
-    procedure Implement(const intf: TGUID); overload;
+    function TryGetSubject(const info: PTypeInfo; out outResult): boolean;
 
     property Subject: T read GetSubject;
   end;
 
-  IRecordProxy<T> = interface(IProxy<T>)
-    procedure BeginRecord(const callback: TInterceptBeforeNotify);
-    function IsRecording: boolean;
-
-    property Recording: boolean read IsRecording;
+  IRecordable = interface
+    ['{2ADDEE2F-5A2A-46CF-9364-F9C158EBF0DB}']
+    procedure BeginProxify(const callback: TInterceptBeforeNotify);
+    procedure EndProxify;
+    function IsProxifying: boolean;
   end;
 
-  IRoleInvokerBuilder<T> = interface(IProxy<T>)
+  IProxy<T> = interface(IReadOnlyProxy<T>)
+    ['{DA2C6DF9-BF35-4485-9E90-F4618A5FAA37}']
+    procedure BeginProxify(const callback: TInterceptBeforeNotify);
+    procedure EndProxify;
+    function IsProxifying: boolean;
+    function QueryProxy(const iid: TGuid; out outResult): HResult;
+
+    property Proxifying: boolean read IsProxifying;
+  end;
+
+  IMockRoleBuilder<T> = interface(IReadOnlyProxy<T>)
     ['{07A0B665-346E-442A-AF8B-ABE502A90636}']
     procedure PushRole(const role: IMockRole);
-    function Build(const method: TRttiMethod; const args: TArray<TValue>): TMockInvoker;
+    function Build(const method: TRttiMethod; const args: TArray<TValue>): TMockAction;
     function GetRoles: TArray<IMockRole>;
-    function GetCallerInfo: ICallerInfo;
+    function GetSession: IMockSession;
 
     property Roles: TArray<IMockRole> read GetRoles;
-    property CallerInfo: ICallerInfo read GetCallerInfo;
+    property Session: IMockSession read GetSession;
   end;
 
 implementation
 
 { TRoleInvoker }
 
-class function TMockInvoker.Create(const method: TRttiMethod;
-  const args: TArray<TValue>; const roles: TArray<IMockRole>): TMockInvoker;
+class function TMockAction.Create(const method: TRttiMethod;
+  const args: TArray<TValue>; const roles: TArray<IMockRole>): TMockAction;
 begin
   Result.FMethod := method;
   Result.FArgs := args;

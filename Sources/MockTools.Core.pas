@@ -13,14 +13,14 @@ type
   private
     FCount: integer;
     FVerifire: TPredicate<integer>;
-    FReportProvider: TFunc<TMockInvoker, integer, string>;
+    FReportProvider: TFunc<TMockAction, integer, string>;
   protected
     { IMockRole }
     procedure DoInvoke(const method: TRttiMethod; var outResult: TValue);
-    function Verify(invoker: TMockInvoker): TVerifyResult;
+    function Verify(invoker: TMockAction): TVerifyResult;
   public
     function OnVerify(const verifire: TPredicate<integer>): TCountExpectRole;
-    function OnErrorReport(const provider: TFunc<TMockInvoker, integer, string>): TCountExpectRole;
+    function OnErrorReport(const provider: TFunc<TMockAction, integer, string>): TCountExpectRole;
   end;
 
   TMethodCallExpectRole = class(TInterfacedObject, IMockRole)
@@ -32,16 +32,16 @@ type
     FOnInvoke: TProc<TList<integer>>;
     FBeforeVerify: TProc<TList<integer>>;
     FOnVerify: TVerifyProc;
-    FReportProvider: TFunc<TMockInvoker, string>;
+    FReportProvider: TFunc<TMockAction, string>;
   protected
     { IMockRole }
     procedure DoInvoke(const method: TRttiMethod; var outResult: TValue);
-    function Verify(invoker: TMockInvoker): TVerifyResult;
+    function Verify(invoker: TMockAction): TVerifyResult;
   public
     constructor Create(const onInvoke: TProc<TList<integer>>; const beforeVerify: TProc<TList<integer>>);
     destructor Destroy; override;
     function OnVerify(const fn: TVerifyProc): TMethodCallExpectRole;
-    function OnErrorReport(const fn: TFunc<TMockInvoker, string>): TMethodCallExpectRole;
+    function OnErrorReport(const fn: TFunc<TMockAction, string>): TMethodCallExpectRole;
   end;
 
   TAbstractSetupRole<T> = class abstract(TInterfacedObject, IMockRole)
@@ -53,7 +53,7 @@ type
   protected
     { IMockRole }
     procedure DoInvoke(const method: TRttiMethod; var outResult: TValue);
-    function Verify(invoker: TMockInvoker): TVerifyResult;
+    function Verify(invoker: TMockAction): TVerifyResult;
   public
     constructor Create(const provider: TFunc<TRttiMethod, T>);
   end;
@@ -72,17 +72,17 @@ type
 
   TExpectRoleFactory = class(TInterfacedObject, IMockExpect)
   private
-    FFactory: TFunc<ICallerInfo, IMockRole>;
+    FFactory: TFunc<IMockSession, IMockRole>;
   protected
     { IExpect<T> }
-    function CreateRole(const callerInfo: ICallerInfo): IMockRole;
+    function CreateRole(const callerInfo: IMockSession): IMockRole;
   public
-    constructor Create(const factory: TFunc<ICallerInfo, IMockRole>);
+    constructor Create(const factory: TFunc<IMockSession, IMockRole>);
   end;
 
   TWhen<T> = class(TInterfacedObject, IWhen<T>, IWhenOrExpect<T>)
   private
-    FBuilder: IRoleInvokerBuilder<T>;
+    FBuilder: IMockRoleBuilder<T>;
   protected
     { IWhen<T> }
     function GetSubject: T;
@@ -90,12 +90,12 @@ type
     { IWhenOrExpect<T> }
     function Expect(const expect: IMockExpect): IWhen<T>;
   public
-    constructor Create(const builder: IRoleInvokerBuilder<T>);
+    constructor Create(const builder: IMockRoleBuilder<T>);
   end;
 
   TMockSetup<T> = class(TInterfacedObject, IMockSetup<T>)
   private
-    FBuilder: IRoleInvokerBuilder<T>;
+    FBuilder: IMockRoleBuilder<T>;
   protected
     { IMockSetup<T> }
     function WillReturn(value: TValue): IWhenOrExpect<T>; overload;
@@ -103,14 +103,14 @@ type
     function WillExecute(const fn: TFunc<TValue>): IWhenOrExpect<T>; overload;
     function WillRaise(const provider: TFunc<Exception>): IWhen<T>; overload;
   public
-    constructor Create(const builder: IRoleInvokerBuilder<T>);
+    constructor Create(const builder: IMockRoleBuilder<T>);
   end;
 
-  TRoleInvokerBuilder<T> = class(TInterfacedObject, IRoleInvokerBuilder<T>)
+  TRoleInvokerBuilder<T> = class(TInterfacedObject, IMockRoleBuilder<T>)
   private
     FRoles: TStack<IMockRole>;
-    FRecordProxy: IRecordProxy<T>;
-    FActionStorage: IActionStorage;
+    FRecordProxy: IProxy<T>;
+    FActionStorage: IMockSessionRecorder;
   private
     procedure NotifyMethodCalled(Instance: TObject;
       Method: TRttiMethod; const Args: TArray<TValue>; out DoInvoke: Boolean;
@@ -119,36 +119,38 @@ type
     { IRoleInvokerBuilder }
     procedure PushRole(const role: IMockRole);
     function GetRoles: TArray<IMockRole>;
-    function GetCallerInfo: ICallerInfo;
-    function Build(const method: TRttiMethod; const args: TArray<TValue>): TMockInvoker;
+    function GetSession: IMockSession;
+    function Build(const method: TRttiMethod; const args: TArray<TValue>): TMockAction;
   protected
     { IProxy<T> }
     function GetSubject: T;
-    procedure Implements(const intf: array of TGUID); overload;
-    procedure Implement(const intf: TGUID); overload;
+    function TryGetSubject(const info: PTypeInfo; out outResult): boolean;
   public
-    constructor Create(const recordProxy: IRecordProxy<T>; const storage: IActionStorage);
+    constructor Create(const recordProxy: IProxy<T>; const storage: IMockSessionRecorder);
     destructor Destroy; override;
   end;
 
-  TActionStorage = class(TInterfacedObject, IActionStorage)
+  TMockSessionRecorder = class(TInterfacedObject, IMockSessionRecorder)
   private
-    FActions: TList<TMockInvoker>;
+    FActions: TList<TMockAction>;
     FCallstacks: TList<TRttiMEthod>;
   protected
-    { IActionStrage }
-    procedure RecordInvoker(const invoker: TMockInvoker);
-    function GetActions: TArray<TMockInvoker>;
+    { IMockSession }
+    function GetActions: TArray<TMockAction>;
+    function TryFindAction(const method: TRttiMethod; const args: TArray<TValue>; out outResult: TMockAction): boolean;
     function GetCallstacks: TList<TRttiMEthod>;
+  protected
+    { IMockSessionRecorder }
+    procedure RecordAction(const invoker: TMockAction);
   public
     constructor Create;
     destructor Destroy; override;
   end;
 
-  TObjectRecordProxy<T: class> = class(TInterfacedObject, IRecordProxy<T>)
+  TObjectRecordProxy<T> = class(TInterfacedObject, IProxy<T>)
   private
     FVmi: TVirtualMethodInterceptor;
-    FInstance: T;
+    FInstance: TValue;
     FOnCallback: TInterceptBeforeNotify;
   private
     function CreateInstance(const t: TRttiType): TValue;
@@ -158,21 +160,21 @@ type
     function IsDestructProcess(methodName: string;
       const names: array of string): boolean;
   protected
-    { IProxy<T> }
+    { IReadOnlyProxy<T> }
     function GetSubject: T;
-    procedure Implements(const intf: array of TGUID); overload;
-    procedure Implement(const intf: TGUID); overload;
+    function TryGetSubject(const info: PTypeInfo; out outResult): boolean;
   protected
     { IRecordProxy<T> }
-    procedure BeginRecord(const callback: TInterceptBeforeNotify);
-    procedure EndRecord;
-    function IsRecording: boolean;
+    procedure BeginProxify(const callback: TInterceptBeforeNotify);
+    procedure EndProxify;
+    function IsProxifying: boolean;
+    function QueryProxy(const iid: TGuid; out outResult): HResult;
   public
     constructor Create;
     destructor Destroy; override;
   end;
 
-  TInterfaceRecordProxy<T> = class(TVirtualInterface, IRecordProxy<T>, IRecordable, IInterface)
+  TInterfaceRecordProxy<T: IInterface> = class(TVirtualInterface, IProxy<T>, IRecordable, IInterface)
   private var
     FIID: TGUID;
     FChildProxies: TDictionary<TGUID, IInterface>;
@@ -182,19 +184,53 @@ type
     function QueryImplementedInterface(const IID: TGUID; out Obj): HResult;
   protected
     { IRecordable }
-    procedure BeginRecord(const callback: TInterceptBeforeNotify);
-    function IsRecording: boolean;
+    procedure BeginProxify(const callback: TInterceptBeforeNotify);
+    procedure EndProxify;
+    function IsProxifying: boolean;
+    function QueryProxy(const iid: TGuid; out outResult): HResult;
   protected
-    { IProxy<T> }
+    { IReadOnlyProxy<T> }
     function GetSubject: T;
-    procedure Implements(const intf: array of TGUID); overload;
-    procedure Implement(const intf: TGUID); overload;
+    function TryGetSubject(const info: PTypeInfo; out outResult): boolean;
   public
     { IInterface }
     function QueryInterface(const IID: TGUID; out Obj): HResult; override; stdcall;
   public
-    constructor Create(const iid: TGUID; const info: PTypeInfo);
+    constructor Create(const iid: TGUID; const info: PTypeInfo; const intf: array of TGUID);
     destructor Destroy; override;
+  end;
+
+  TTypeBridgeProxy<TFrom; TTo: IInterface> = class(TInterfacedObject, IProxy<TTo>, IInterface)
+  private
+    FProxy: IProxy<TFrom>;
+  protected
+    { IRecordable }
+    procedure BeginProxify(const callback: TInterceptBeforeNotify);
+    procedure EndProxify;
+    function IsProxifying: boolean;
+    function QueryProxy(const iid: TGuid; out outResult): HResult;
+  protected
+    { IReadOnlyProxy<T> }
+    function GetSubject: TTo;
+    function TryGetSubject(const info: PTypeInfo; out outResult): boolean;
+  public
+    { IInterface }
+    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+  public
+    constructor Create(const proxy: IProxy<TFrom>);
+  end;
+
+  TVirtualProxy<T> = class(TInterfacedObject, IReadOnlyProxy<T>)
+  private var
+    FProxy: IReadOnlyProxy<T>;
+    FSession: IMockSession;
+  private
+
+  protected
+    { IProxy<T> }
+    property Proxy: IReadOnlyProxy<T> read FProxy implements IReadOnlyProxy<T>;
+  public
+    constructor Create(const proxy: IProxy<T>; const session: IMockSession);
   end;
 
 function HasRtti(info: PTypeInfo): boolean;
@@ -208,7 +244,7 @@ uses
 { TExpectRole }
 
 function TCountExpectRole.OnErrorReport(
-  const provider: TFunc<TMockInvoker, integer, string>): TCountExpectRole;
+  const provider: TFunc<TMockAction, integer, string>): TCountExpectRole;
 begin
   System.Assert(Assigned(provider));
   FReportProvider := provider;
@@ -230,7 +266,7 @@ begin
   TInterlocked.Increment(FCount);
 end;
 
-function TCountExpectRole.Verify(invoker: TMockInvoker): TVerifyResult;
+function TCountExpectRole.Verify(invoker: TMockAction): TVerifyResult;
 begin
   if FVerifire(FCount) then begin
     Result := TVerifyResult.Create('');
@@ -256,7 +292,7 @@ begin
   DoInvokeInternal(FProvider(method), outResult);
 end;
 
-function TAbstractSetupRole<T>.Verify(invoker: TMockInvoker): TVerifyResult;
+function TAbstractSetupRole<T>.Verify(invoker: TMockAction): TVerifyResult;
 begin
   if FInvoked then begin
     Result := TVerifyResult.Create('');
@@ -284,7 +320,7 @@ end;
 
 { TExpect<T> }
 
-constructor TExpectRoleFactory.Create(const factory: TFunc<ICallerInfo, IMockRole>);
+constructor TExpectRoleFactory.Create(const factory: TFunc<IMockSession, IMockRole>);
 begin
   Assert(Assigned(factory));
 
@@ -292,14 +328,14 @@ begin
 end;
 
 function TExpectRoleFactory.CreateRole(
-  const callerInfo: ICallerInfo): IMockRole;
+  const callerInfo: IMockSession): IMockRole;
 begin
   Result := FFactory(callerInfo);
 end;
 
 { TWhen<T> }
 
-constructor TWhen<T>.Create(const builder: IRoleInvokerBuilder<T>);
+constructor TWhen<T>.Create(const builder: IMockRoleBuilder<T>);
 begin
   FBuilder := builder;
 end;
@@ -308,7 +344,7 @@ function TWhen<T>.Expect(const expect: IMockExpect): IWhen<T>;
 begin
   Assert(Assigned(expect));
 
-  FBuilder.PushRole(expect.CreateRole(FBuilder.CallerInfo));
+  FBuilder.PushRole(expect.CreateRole(FBuilder.Session));
 
   Result := TWhen<T>.Create(FBuilder);
 end;
@@ -320,8 +356,8 @@ end;
 
 { TRoleInvokerBuilder<T> }
 
-constructor TRoleInvokerBuilder<T>.Create(const recordProxy: IRecordProxy<T>;
-  const storage: IActionStorage);
+constructor TRoleInvokerBuilder<T>.Create(const recordProxy: IProxy<T>;
+  const storage: IMockSessionRecorder);
 begin
   System.Assert(Assigned(recordProxy));
   System.Assert(Assigned(storage));
@@ -330,7 +366,7 @@ begin
   FRecordProxy := recordProxy;
   FActionStorage := storage;
 
-  FRecordProxy.BeginRecord(Self.NotifyMethodCalled);
+  FRecordProxy.BeginProxify(Self.NotifyMethodCalled);
 end;
 
 destructor TRoleInvokerBuilder<T>.Destroy;
@@ -339,22 +375,12 @@ begin
   inherited;
 end;
 
-procedure TRoleInvokerBuilder<T>.Implements(const intf: array of TGUID);
+function TRoleInvokerBuilder<T>.Build(const method: TRttiMethod; const args: TArray<TValue>): TMockAction;
 begin
-  FRecordProxy.Implements(intf);
+  Result := TMockAction.Create(method, args, Self.GetRoles);
 end;
 
-procedure TRoleInvokerBuilder<T>.Implement(const intf: TGUID);
-begin
-  Self.Implements([intf]);
-end;
-
-function TRoleInvokerBuilder<T>.Build(const method: TRttiMethod; const args: TArray<TValue>): TMockInvoker;
-begin
-  Result := TMockInvoker.Create(method, args, Self.GetRoles);
-end;
-
-function TRoleInvokerBuilder<T>.GetCallerInfo: ICallerInfo;
+function TRoleInvokerBuilder<T>.GetSession: IMockSession;
 begin
   Result := FActionStorage;
 end;
@@ -374,78 +400,99 @@ begin
   FRoles.Push(role);
 end;
 
+function TRoleInvokerBuilder<T>.TryGetSubject(const info: PTypeInfo; out outResult): boolean;
+begin
+  Result := FRecordProxy.TryGetSubject(info, outResult);
+end;
+
 procedure TRoleInvokerBuilder<T>.NotifyMethodCalled(Instance: TObject;
   Method: TRttiMethod; const Args: TArray<TValue>; out DoInvoke: Boolean;
   out Result: TValue);
 begin
-  FActionStorage.RecordInvoker(Self.Build(Method, Args));
+  FActionStorage.RecordAction(Self.Build(Method, Args));
+
+  FRecordProxy.EndProxify;
 end;
 
-{ TActionStorage }
+{ TMockSessionRecorder }
 
-constructor TActionStorage.Create;
+constructor TMockSessionRecorder.Create;
 begin
-  FActions := TList<TMockInvoker>.Create;
+  FActions := TList<TMockAction>.Create;
   FCallstacks := TList<TRttiMethod>.Create;
 end;
 
-destructor TActionStorage.Destroy;
+destructor TMockSessionRecorder.Destroy;
 begin
   FActions.Free;
   FCallstacks.Free;
   inherited;
 end;
 
-function TActionStorage.GetActions: TArray<TMockInvoker>;
+function TMockSessionRecorder.GetActions: TArray<TMockAction>;
 begin
   Result := FActions.ToArray;
 end;
 
-function TActionStorage.GetCallstacks: TList<TRttiMEthod>;
+function TMockSessionRecorder.GetCallstacks: TList<TRttiMEthod>;
 begin
   Result := FCallstacks;
 end;
 
-procedure TActionStorage.RecordInvoker(const invoker: TMockInvoker);
+procedure TMockSessionRecorder.RecordAction(const invoker: TMockAction);
 begin
   FActions.Add(invoker);
 end;
 
+function TMockSessionRecorder.TryFindAction(const method: TRttiMethod;
+  const args: TArray<TValue>; out outResult: TMockAction): boolean;
+
+  function IsSameArgs(const rhs: TArray<TValue>): boolean;
+  begin
+    if Length(Args) <> Length(rhs) then Exit(false);
+
+    Result := true;
+  end;
+
+var
+  action: TMockAction;
+begin
+  for action in Self.GetActions do begin
+    if action.Method <> Method then Continue;
+    if not IsSameArgs(action.Args) then Continue;
+
+    outResult := action;
+    Exit(true);
+  end;
+
+  Result := false;
+end;
+
 { TObjectRecordProxy<T> }
 
-procedure TObjectRecordProxy<T>.BeginRecord(
+procedure TObjectRecordProxy<T>.BeginProxify(
   const callback: TInterceptBeforeNotify);
 begin
   FOnCallback := callback;
 end;
 
-procedure TObjectRecordProxy<T>.EndRecord;
+procedure TObjectRecordProxy<T>.EndProxify;
 begin
   FOnCallback := nil;
-end;
-
-procedure TObjectRecordProxy<T>.Implements(const intf: array of TGUID);
-begin
-  Assert(false, 'Not supported procedure');
-end;
-
-procedure TObjectRecordProxy<T>.Implement(const intf: TGUID);
-begin
-  Assert(false, 'Not supported procedure');
 end;
 
 constructor TObjectRecordProxy<T>.Create;
 var
   ctx: TRttiContext;
-  obj: TValue;
+  tt: TRttiType;
 begin
   ctx := TRttiContext.Create;
   try
-    obj := Self.CreateInstance(ctx.GetType(System.TypeInfo(T)));
+    tt := ctx.GetType(System.TypeInfo(T));
+    FInstance := Self.CreateInstance(tt);
 
-    FInstance := obj.AsType<T>;
-    FVmi := TVirtualMethodInterceptor.Create(T);
-    FVmi.Proxify(obj.AsObject);
+    FVmi := TVirtualMethodInterceptor.Create(tt.AsInstance.MetaclassType);
+    FVmi.Proxify(FInstance.AsObject);
     FVmi.OnBefore := Self.NotifyMethodCalled;
   finally
     ctx.Free;
@@ -454,19 +501,19 @@ end;
 
 destructor TObjectRecordProxy<T>.Destroy;
 begin
-  FVmi.Unproxify(FInstance);
+  FVmi.Unproxify(FInstance.AsObject);
 
   FVmi.Free;
-  FInstance.Free;
+  FInstance.AsObject.Free;
   inherited;
 end;
 
 function TObjectRecordProxy<T>.GetSubject: T;
 begin
-  Result := FInstance;
+  Result := FInstance.AsType<T>;
 end;
 
-function TObjectRecordProxy<T>.IsRecording: boolean;
+function TObjectRecordProxy<T>.IsProxifying: boolean;
 begin
   Result := Assigned(FOnCallback);
 end;
@@ -492,11 +539,19 @@ begin
 
   System.Assert(Assigned(FOnCallback));
 
-  try
-    FOnCallback(Instance, Method, Args, DoInvoke, Result);
-  finally
-    Self.EndRecord;
-  end;
+  FOnCallback(Instance, Method, Args, DoInvoke, Result);
+end;
+
+function TObjectRecordProxy<T>.QueryProxy(const iid: TGuid;
+  out outResult): HResult;
+begin
+  Result := E_NOINTERFACE;
+end;
+
+function TObjectRecordProxy<T>.TryGetSubject(const info: PTypeInfo;
+  out outResult): boolean;
+begin
+  Assert(false, 'Not supported');
 end;
 
 function TObjectRecordProxy<T>.CreateInstance(const t: TRttiType): TValue;
@@ -516,7 +571,7 @@ end;
 
 { TMockSetup<T> }
 
-constructor TMockSetup<T>.Create(const builder: IRoleInvokerBuilder<T>);
+constructor TMockSetup<T>.Create(const builder: IMockRoleBuilder<T>);
 begin
   FBuilder := builder;
 end;
@@ -586,7 +641,7 @@ begin
 end;
 
 function TMethodCallExpectRole.OnErrorReport(
-  const fn: TFunc<TMockInvoker, string>): TMethodCallExpectRole;
+  const fn: TFunc<TMockAction, string>): TMethodCallExpectRole;
 begin
   FReportProvider := fn;
   Result := Self;
@@ -607,7 +662,7 @@ begin
   FOnInvoke(FIndicies);
 end;
 
-function TMethodCallExpectRole.Verify(invoker: TMockInvoker): TVerifyResult;
+function TMethodCallExpectRole.Verify(invoker: TMockAction): TVerifyResult;
 var
   indicies: TList<integer>;
   i: integer;
@@ -657,13 +712,19 @@ end;
 
 { TInterfaceRecordProxy<T> }
 
-constructor TInterfaceRecordProxy<T>.Create(const iid: TGUID; const info: PTypeInfo);
+constructor TInterfaceRecordProxy<T>.Create(const iid: TGUID; const info: PTypeInfo; const intf: array of TGUID);
+var
+  t: TRttiInterfaceType;
 begin
   Assert(Assigned(info));
   Assert(HasRtti(info), Format('"%s" do not have RTTI. Please use "{$M+}"', [info^.Name]));
 
   FIID := iid;
   FChildProxies := TDictionary<TGUID, IInterface>.Create;
+
+  for t in Self.ResolveTypes(intf) do begin
+    FChildProxies.Add(t.GUID, TInterfaceRecordProxy<IInterface>.Create(t.GUID, t.Handle, []));
+  end;
 
   inherited Create(info,
     procedure (Method: TRttiMethod;
@@ -685,17 +746,31 @@ begin
   inherited;
 end;
 
-procedure TInterfaceRecordProxy<T>.BeginRecord(
+procedure TInterfaceRecordProxy<T>.BeginProxify(
   const callback: TInterceptBeforeNotify);
 var
-  iif: IInterface;
-  child: IRecordable;
+  child: IInterface;
+  recorder: IRecordable;
 begin
   FOnCallback := callback;
 
-  for iif in FChildProxies.Values do begin
-    if Supports(iif, IRecordable, child) then begin
-      child.BeginRecord(callback);
+  for child in FChildProxies.Values do begin
+    if Supports(child, IRecordable, recorder) then begin
+      recorder.BeginProxify(callback);
+    end;
+  end;
+end;
+
+procedure TInterfaceRecordProxy<T>.EndProxify;
+var
+  child: IInterface;
+  recorder: IRecordable;
+begin
+  FOnCallback := nil;
+
+  for child in FChildProxies.Values do begin
+    if Supports(child, IRecordable, recorder) then begin
+      recorder.EndProxify;
     end;
   end;
 end;
@@ -730,18 +805,22 @@ begin
   end;
 end;
 
-procedure TInterfaceRecordProxy<T>.Implements(const intf: array of TGUID);
+function TInterfaceRecordProxy<T>.TryGetSubject(const info: PTypeInfo;
+  out outResult): boolean;
 var
-  t:  TRttiInterfaceType;
+  ctx: TRttiContext;
+  t: TRttiType;
 begin
-  for t in Self.ResolveTypes(intf) do begin
-    FChildProxies.Add(t.GUID, TInterfaceRecordProxy<TObject>.Create(t.GUID, t.Handle));
-  end;
-end;
+  ctx := TRttiContext.Create;
+  try
+    t := ctx.GetType(info);
 
-procedure TInterfaceRecordProxy<T>.Implement(const intf: TGUID);
-begin
-  Self.Implements([intf]);
+    Assert(t is TRttiInterfaceType);
+
+    Result := Self.QueryInterface(TRttiInterfaceType(t).GUID, outResult) = S_OK;
+  finally
+    ctx.Free;
+  end;
 end;
 
 function TInterfaceRecordProxy<T>.GetSubject: T;
@@ -749,9 +828,7 @@ begin
   Self.QueryInterface(FIID, Result);
 end;
 
-function TInterfaceRecordProxy<T>.IsRecording: boolean;
-var
-  err: HRESULT;
+function TInterfaceRecordProxy<T>.IsProxifying: boolean;
 begin
   Result := Assigned(FOnCallback);
 end;
@@ -773,6 +850,100 @@ begin
   if Result <> 0 then begin
     Result := Self.QueryImplementedInterface(IID, Obj);
   end;
+end;
+
+function TInterfaceRecordProxy<T>.QueryProxy(const IID: TGuid;
+  out outResult): HRESULT;
+var
+  proxy: IInterface;
+begin
+  if IID = FIID then begin
+    IInterface(outResult) := Self;
+    Result := S_OK;
+  end
+  else if FChildProxies.TryGetValue(IID, proxy) then begin
+    IInterface(outResult) := proxy;
+    Result := S_OK;
+  end
+  else begin
+    Result := E_NOTIMPL;
+  end;
+end;
+
+{ TVirtualProxy<T> }
+
+constructor TVirtualProxy<T>.Create(const proxy: IProxy<T>;
+  const session: IMockSession);
+begin
+  proxy.BeginProxify(
+    procedure (Instance: TObject;
+      Method: TRttiMethod; const Args: TArray<TValue>; out DoInvoke: Boolean; out Result: TValue)
+    var
+      action: TMockAction;
+      role: IMockRole;
+    begin
+      FSession.Callstacks.Add(Method);
+
+      if not FSession.TryFindAction(Method, Args, action) then begin
+        DoInvoke := true;
+        Exit;
+      end
+      else begin
+        for role in action.Roles do begin
+          role.DoInvoke(Method, Result);
+        end;
+      end;
+    end
+  );
+
+  FProxy := proxy;
+  FSession := session;
+end;
+
+{ TTypeBridgeProxy<TFrom, TTo> }
+
+constructor TTypeBridgeProxy<TFrom, TTo>.Create(const proxy: IProxy<TFrom>);
+begin
+  FProxy := proxy;
+end;
+
+procedure TTypeBridgeProxy<TFrom, TTo>.BeginProxify(
+  const callback: TInterceptBeforeNotify);
+begin
+  FProxy.BeginProxify(callback);
+end;
+
+procedure TTypeBridgeProxy<TFrom, TTo>.EndProxify;
+begin
+  FProxy.EndProxify;
+end;
+
+function TTypeBridgeProxy<TFrom, TTo>.GetSubject: TTo;
+begin
+  Assert(Self.TryGetSubject(TypeInfo(TTo), Result));
+end;
+
+function TTypeBridgeProxy<TFrom, TTo>.IsProxifying: boolean;
+begin
+  Result := FProxy.IsProxifying;
+end;
+
+function TTypeBridgeProxy<TFrom, TTo>.QueryInterface(const IID: TGUID;
+  out Obj): HResult;
+begin
+  Result := FProxy.QueryInterface(IID, Obj);
+end;
+
+function TTypeBridgeProxy<TFrom, TTo>.QueryProxy(const IID: TGuid;
+  out outResult): HResult;
+begin
+  Result := FProxy.QueryProxy(IID, outResult);
+end;
+
+function TTypeBridgeProxy<TFrom, TTo>.TryGetSubject(const info: PTypeInfo;
+  out outResult): boolean;
+begin
+  Result := FProxy.TryGetSubject(info, outResult);
 end;
 
 end.

@@ -30,7 +30,7 @@ uses
 function Exactly(const times: integer): IMockExpect;
 begin
   Result := TExpectRoleFactory.Create(
-    function (callerInfo: ICallerInfo): IMockRole
+    function (callerInfo: IMockSession): IMockRole
     begin
       Result :=
         TCountExpectRole.Create
@@ -41,7 +41,7 @@ begin
           end
         )
         .OnErrorReport(
-          function (invoker: TMockInvoker; count: integer): string
+          function (invoker: TMockAction; count: integer): string
           begin
             Result := Format('A method (%s) did not match call count (expect: %d, actual: %d)', [invoker.Method.Name, times, count]);
           end
@@ -63,7 +63,7 @@ end;
 function AtLeast(const times: integer): IMockExpect;
 begin
   Result := TExpectRoleFactory.Create(
-    function (callerInfo: ICallerInfo): IMockRole
+    function (callerInfo: IMockSession): IMockRole
     begin
       Result :=
         TCountExpectRole.Create
@@ -74,7 +74,7 @@ begin
           end
         )
         .OnErrorReport(
-          function (invoker: TMockInvoker; count: integer): string
+          function (invoker: TMockAction; count: integer): string
           begin
             Result := Format('At least %d times, a method (%s) must be called (actual: %d)', [times, invoker.Method.Name, count]);
           end
@@ -91,7 +91,7 @@ end;
 function AtMost(const times: integer): IMockExpect;
 begin
   Result := TExpectRoleFactory.Create(
-    function (callerInfo: ICallerInfo): IMockRole
+    function (callerInfo: IMockSession): IMockRole
     begin
       Result :=
         TCountExpectRole.Create
@@ -102,7 +102,7 @@ begin
           end
         )
         .OnErrorReport(
-          function (invoker: TMockInvoker; count: integer): string
+          function (invoker: TMockAction; count: integer): string
           begin
             Result := Format('A method (%s) must be called greater than %d times (actual: %d)', [invoker.Method.Name, times, count]);
           end
@@ -114,7 +114,7 @@ end;
 function Between(const a, b: integer): IMockExpect;
 begin
   Result := TExpectRoleFactory.Create(
-    function (callerInfo: ICallerInfo): IMockRole
+    function (callerInfo: IMockSession): IMockRole
     begin
       Result :=
         TCountExpectRole.Create
@@ -125,7 +125,7 @@ begin
           end
         )
         .OnErrorReport(
-          function (invoker: TMockInvoker; count: integer): string
+          function (invoker: TMockAction; count: integer): string
           begin
             Result := Format('A method (%s) must be called between %d and %d (actual: %d)', [invoker.Method.Name, a, b, count]);
           end
@@ -137,7 +137,7 @@ end;
 function BeforeOnce(const AMethodName: string): IMockExpect;
 begin
   Result := TExpectRoleFactory.Create(
-    function (callerInfo: ICallerInfo): IMockRole
+    function (callerInfo: IMockSession): IMockRole
     begin
       Result :=
         TMethodCallExpectRole.Create(
@@ -177,7 +177,7 @@ begin
           end
         )
         .OnErrorReport(
-          function (invoker: TMockInvoker): string
+          function (invoker: TMockAction): string
           begin
             Result := Format('Exactly once, a method (%s) must be called before "%s"', [AMethodName, invoker.Method.Name]);
           end
@@ -189,7 +189,7 @@ end;
 function Before(const AMethodName: string): IMockExpect;
 begin
   Result := TExpectRoleFactory.Create(
-    function (callerInfo: ICallerInfo): IMockRole
+    function (callerInfo: IMockSession): IMockRole
     begin
       Result :=
         TMethodCallExpectRole.Create(
@@ -220,7 +220,7 @@ begin
           end
         )
         .OnErrorReport(
-          function (invoker: TMockInvoker): string
+          function (invoker: TMockAction): string
           begin
             Result := Format('At least once, a method (%s) must be called before "%s"', [AMethodName, invoker.Method.Name]);
           end
@@ -232,7 +232,7 @@ end;
 function AfterOnce(const AMethodName: string): IMockExpect;
 begin
   Result := TExpectRoleFactory.Create(
-    function (callerInfo: ICallerInfo): IMockRole
+    function (callerInfo: IMockSession): IMockRole
     begin
       Result :=
         TMethodCallExpectRole.Create(
@@ -272,7 +272,7 @@ begin
           end
         )
         .OnErrorReport(
-          function (invoker: TMockInvoker): string
+          function (invoker: TMockAction): string
           begin
             Result := Format('Exactly once, a method (%s) must be called after "%s"', [AMethodName, invoker.Method.Name]);
           end
@@ -284,7 +284,7 @@ end;
 function After(const AMethodName: string): IMockExpect;
 begin
   Result := TExpectRoleFactory.Create(
-    function (callerInfo: ICallerInfo): IMockRole
+    function (callerInfo: IMockSession): IMockRole
     begin
       Result :=
         TMethodCallExpectRole.Create(
@@ -315,7 +315,7 @@ begin
           end
         )
         .OnErrorReport(
-          function (invoker: TMockInvoker): string
+          function (invoker: TMockAction): string
           begin
             Result := Format('At least once, a method (%s) must be called after "%s"', [AMethodName, invoker.Method.Name]);
           end

@@ -33,18 +33,19 @@ end;
 
 procedure _RecordProxy_Test._Create_Object_Record_Proxy;
 var
-  proxy: IRecordProxy<TCounterObject>;
+  proxy: IProxy<TCounterObject>;
   obj: TCounterObject;
   count: integer;
 begin
   proxy := TObjectRecordProxy<TCounterObject>.Create;
-  proxy.BeginRecord(ProxyFook);
+  proxy.BeginProxify(ProxyFook);
   begin
     proxy.Subject.CountUp;
   end;
+  proxy.EndProxify;
 
   proxy := TObjectRecordProxy<TCounterObject>.Create;
-  proxy.BeginRecord(ProxyFook);
+  proxy.BeginProxify(ProxyFook);
   begin
     obj := proxy.Subject;
     try
@@ -53,6 +54,7 @@ begin
       obj.Free;
     end;
   end;
+  proxy.EndProxify;
 
   obj := TCounterObject.Create;
   try
@@ -69,7 +71,7 @@ end;
 type
   TDummyRole = class(TInterfacedObject, IMockRole)
     procedure DoInvoke(const method: TRttiMEthod; var outResult: TValue);
-    function Verify(invoker: TMockInvoker): TVerifyResult;
+    function Verify(invoker: TMockAction): TVerifyResult;
   end;
 
 { TDummyRole }
@@ -81,26 +83,26 @@ end;
 
 procedure _RecordProxy_Test._Create_Builder;
 var
-  proxy: IRecordProxy<TCounterObject>;
-  builder: IRoleInvokerBuilder<TCounterObject>;
+  proxy: IProxy<TCounterObject>;
+  builder: IMockRoleBuilder<TCounterObject>;
   role1, role2: IMockRole;
-  invoker: TMockInvoker;
+  invoker: TMockAction;
 
   ctx: TRttiContext;
   t: TRttiType;
 begin
   proxy := TObjectRecordProxy<TCounterObject>.Create;
 
-  Its('Now Recording').Val(proxy.Recording).Should(not BeTrue);
+  Its('Now Recording[0]').Val(proxy.Proxifying).Should(not BeTrue);
 
   builder := TRoleInvokerBuilder<TCounterObject>.Create(
-    proxy, TActionStorage.Create
+    proxy, TMockSessionRecorder.Create
   );
 
   // ロールの追加を行わせたくないため、レコーディングフックを差し替える
-  proxy.BeginRecord(ProxyFook);
+  proxy.BeginProxify(ProxyFook);
 
-  Its('Now Recording').Val(proxy.Recording).Should(BeTrue);
+  Its('Now Recording[1]').Val(proxy.Proxifying).Should(BeTrue);
 
   role1 := TDummyRole.Create;
   role2 := TDummyRole.Create;
@@ -128,9 +130,13 @@ begin
   finally
     ctx.Free;
   end;
+
+  proxy.EndProxify;
+
+  Its('Now Recording[2]').Val(proxy.Proxifying).Should(not BeTrue);
 end;
 
-function TDummyRole.Verify(invoker: TMockInvoker): TVerifyResult;
+function TDummyRole.Verify(invoker: TMockAction): TVerifyResult;
 begin
   Result := System.Default(TVerifyResult);
 end;

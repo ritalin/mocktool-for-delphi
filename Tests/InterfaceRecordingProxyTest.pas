@@ -40,14 +40,18 @@ end;
 
 procedure _InterfaceRecordingProxy_Test._Create_Proxy;
 var
-  proxy: IRecordProxy<ICounter>;
+  proxy: IProxy<ICounter>;
   log: TStrings;
 begin
   log := TStringList.Create;
   try
-    proxy := TInterfaceRecordProxy<ICounter>.Create(ICounter, TypeInfo(ICounter));
-    proxy.BeginRecord(ProxyRecordingHook(log));
+    proxy := TInterfaceRecordProxy<ICounter>.Create(ICounter, TypeInfo(ICounter), []);
+
+    Its('Now Proxifying:before').Val(proxy.Proxifying).Should(not BeTrue);
+
+    proxy.BeginProxify(ProxyRecordingHook(log));
     begin
+      Its('Now Proxifying').Val(proxy.Proxifying).Should(BeTrue);
       Its('log:length:before').Val(log.Count).Should(BeEqualTo(0));
 
       proxy.Subject.CountUp;
@@ -59,6 +63,9 @@ begin
       Its('log[1]').Val(log[1]).Should(BeEqualTo('CountUp'));
       Its('log[2]').Val(log[2]).Should(BeEqualTo('CallCount'));
     end;
+    proxy.EndProxify;
+
+    Its('Now Proxifying:after').Val(proxy.Proxifying).Should(not BeTrue);
   finally
     log.Free;
   end;
@@ -66,16 +73,19 @@ end;
 
 procedure _InterfaceRecordingProxy_Test._Create_Proxy_extends_other_intf;
 var
-  proxy: IRecordProxy<ICounter>;
+  proxy: IProxy<ICounter>;
   log: TStrings;
   showing: IShowing;
 begin
   log := TStringList.Create;
   try
-    proxy := TInterfaceRecordProxy<ICounter>.Create(ICounter, TypeInfo(ICounter));
-    proxy.Implements([IShowing]);
-    proxy.BeginRecord(ProxyRecordingHook(log));
+    proxy := TInterfaceRecordProxy<ICounter>.Create(ICounter, TypeInfo(ICounter), [IShowing]);
+
+    Its('Now Proxifying:before').Val(proxy.Proxifying).Should(not BeTrue);
+
+    proxy.BeginProxify(ProxyRecordingHook(log));
     begin
+      Its('Now Proxifying').Val(proxy.Proxifying).Should(BeTrue);
       Its('log:length:before').Val(log.Count).Should(BeEqualTo(0));
 
       proxy.Subject.CountUp;
@@ -94,6 +104,9 @@ begin
       Its('log[3]').Val(log[3]).Should(BeEqualTo('ToString'));
       Its('log[4]').Val(log[4]).Should(BeEqualTo('ToString'));
     end;
+    proxy.EndProxify;
+
+    Its('Now Proxifying:after').Val(proxy.Proxifying).Should(not BeTrue);
   finally
     log.Free;
   end;
@@ -107,24 +120,24 @@ end;
 
 procedure _InterfaceRecordingProxy_Test._Create_Builder;
 var
-  proxy: IRecordProxy<ICounter>;
-  storage: IActionStorage;
-  builder: IRoleInvokerBuilder<ICounter>;
+  proxy: IProxy<ICounter>;
+  storage: IMockSessionRecorder;
+  builder: IMockRoleBuilder<ICounter>;
   setup: IMockSetup<ICounter>;
-  invoker: TMockInvoker;
+  invoker: TMockAction;
   role1, role2: IMockRole;
   val: TValue;
 begin
-  proxy := TInterfaceRecordProxy<ICounter>.Create(ICounter, TypeInfo(ICounter));
-  storage := TActionStorage.Create;
+  proxy := TInterfaceRecordProxy<ICounter>.Create(ICounter, TypeInfo(ICounter), []);
+  storage := TMockSessionRecorder.Create;
 
-  Its('Now Recording').Val(proxy.Recording).Should(not BeTrue);
+  Its('Now Proxifying:before').Val(proxy.Proxifying).Should(not BeTrue);
 
   builder := TRoleInvokerBuilder<ICounter>.Create(
     proxy, storage
   );
 
-  Its('Now Recording').Val(proxy.Recording).Should(BeTrue);
+  Its('Now Proxifying').Val(proxy.Proxifying).Should(BeTrue);
 
   Its('Actions:length:before').Val(Length(storage.Actions)).Should(BeEqualTo(0));
 
@@ -134,6 +147,8 @@ begin
     .Expect(Exactly(2))
     .When.CallCount
   ;
+
+  Its('Now Proxifying:after').Val(proxy.Proxifying).Should(not BeTrue);
 
   Its('Actions:length:after').Val(Length(storage.Actions)).Should(BeEqualTo(1));
 

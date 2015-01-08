@@ -120,11 +120,13 @@
         <DCCReference Include="..\Sources\MockTools.Core.pas"/>
         <DCCReference Include="ObjectRecordingProxyTest.pas"/>
         <DCCReference Include="..\Sources\MockTools.Core.Types.pas"/>
-        <DCCReference Include="CreateSetupTest.pas"/>
         <DCCReference Include="MockTarget.pas"/>
-        <DCCReference Include="CreateExpectRolesTest.pas"/>
         <DCCReference Include="..\Sources\MockTools.Mocks.CoreExpect.pas"/>
+        <DCCReference Include="..\Sources\MockTools.ExceptionHandler.DUnitX.pas"/>
+        <DCCReference Include="CreateSetupTest.pas"/>
+        <DCCReference Include="CreateExpectRolesTest.pas"/>
         <DCCReference Include="InterfaceRecordingProxyTest.pas"/>
+        <DCCReference Include="MockTest.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

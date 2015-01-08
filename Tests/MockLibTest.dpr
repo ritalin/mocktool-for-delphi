@@ -13,11 +13,13 @@ uses
   MockTools.Core in '..\Sources\MockTools.Core.pas',
   ObjectRecordingProxyTest in 'ObjectRecordingProxyTest.pas',
   MockTools.Core.Types in '..\Sources\MockTools.Core.Types.pas',
-  CreateSetupTest in 'CreateSetupTest.pas',
   MockTarget in 'MockTarget.pas',
-  CreateExpectRolesTest in 'CreateExpectRolesTest.pas',
   MockTools.Mocks.CoreExpect in '..\Sources\MockTools.Mocks.CoreExpect.pas',
-  InterfaceRecordingProxyTest in 'InterfaceRecordingProxyTest.pas';
+  MockTools.ExceptionHandler.DUnitX in '..\Sources\MockTools.ExceptionHandler.DUnitX.pas',
+  CreateSetupTest in 'CreateSetupTest.pas',
+  CreateExpectRolesTest in 'CreateExpectRolesTest.pas',
+  InterfaceRecordingProxyTest in 'InterfaceRecordingProxyTest.pas',
+  MockTest in 'MockTest.pas';
 
 var
   runner : ITestRunner;
@@ -39,6 +41,7 @@ begin
     TDUnitX.RegisterTestFixture(_InterfaceRecordingProxy_Test);
     TDUnitX.RegisterTestFixture(_Create_Setup_Roles);
     TDUnitX.RegisterTestFixture(_Create_Expect_Roles);
+    TDUnitX.RegisterTestFixture(_Mock_Test);
 
     //Run tests
     results := runner.Execute;
