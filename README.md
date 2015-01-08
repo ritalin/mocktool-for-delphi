@@ -63,7 +63,7 @@ type ICounter = interface
 end;
 {$M-}
 var
-  mock: TMock<TSomeObject>;
+  mock: TMock<ICounter>;
 begin
   mock := TMock.Create<ICounter>;
   mock.Setup.WillReturn(108).Expect(Exactry(2)).When.CallCount;
@@ -85,7 +85,7 @@ end;
 {$M-}
 
 var
-  mock: TMock<TSomeObject>;
+  mock: TMock<ICounter>;
 begin
   mock := TMock.Create<ICounter>([IShowing]);
   mock.SetUp<IShowing>.WillReturn('Foo').Expect(Only).When.ToString;
@@ -101,7 +101,7 @@ begin
 
 ```delphi
 var
-  mock: TMock<TSomeObject>;
+  mock: TMock<ICounter>;
 begin
   mock := TMock.Create<TSomeObject>;
   mock.Stub.WillReturn('Foo').When.ToString;
