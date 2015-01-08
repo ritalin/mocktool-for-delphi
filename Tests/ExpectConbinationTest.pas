@@ -39,6 +39,14 @@ begin
     .Expect(BeforeOnce('CountUp') and Once)
     .When.CallCount
   ;
+  mock
+    .Setup.WillExecute(
+      procedure
+      begin
+      end
+    )
+    .When.CountUp
+  ;
 
   Its('mock.verify[0]').Call(
     procedure
@@ -82,6 +90,14 @@ begin
     .Setup.WillReturn(256)
     .Expect(BeforeOnce('CountUp') and Once)
     .When.CallCount
+  ;
+  mock
+    .Setup.WillExecute(
+      procedure
+      begin
+      end
+    )
+    .When.CountUp
   ;
 
   Its('mock.verify[0]').Call(
@@ -146,6 +162,15 @@ begin
     .Expect(BeforeOnce('CountUp') or AfterOnce('ToString'))
     .When.CallCount
   ;
+  mock
+    .Setup.WillExecute(
+      procedure
+      begin
+      end
+    )
+    .When.CountUp
+  ;
+  mock.Setup<IShowing>.WillReturn('FizzBazz').When.ToString;
 
   Its('mock.verify[0]').Call(
     procedure
@@ -171,6 +196,15 @@ begin
     .Expect(BeforeOnce('CountUp') or AfterOnce('ToString'))
     .When.CallCount
   ;
+  mock
+    .Setup.WillExecute(
+      procedure
+      begin
+      end
+    )
+    .When.CountUp
+  ;
+  mock.Setup<IShowing>.WillReturn('FizzBazz').When.ToString;
 
   Its('mock.verify[0]').Call(
     procedure
@@ -197,6 +231,15 @@ begin
     .Expect(BeforeOnce('CountUp') or AfterOnce('ToString'))
     .When.CallCount
   ;
+  mock
+    .Setup.WillExecute(
+      procedure
+      begin
+      end
+    )
+    .When.CountUp
+  ;
+  mock.Setup<IShowing>.WillReturn('FizzBazz').When.ToString;
 
   Its('mock.verify[0]').Call(
     procedure
@@ -222,6 +265,15 @@ begin
     .Expect(BeforeOnce('CountUp') or AfterOnce('ToString'))
     .When.CallCount
   ;
+  mock
+    .Setup.WillExecute(
+      procedure
+      begin
+      end
+    )
+    .When.CountUp
+  ;
+  mock.Setup<IShowing>.WillReturn('FizzBazz').When.ToString;
 
   Its('mock.verify[0]').Call(
     procedure
@@ -276,6 +328,14 @@ begin
     .Setup.WillReturn(1024)
     .Expect(not Once)
     .When.CallCount
+  ;
+  mock
+    .Setup.WillExecute(
+      procedure
+      begin
+      end
+    )
+    .When.CountUp
   ;
 
   mock.VerifyAll; // passed

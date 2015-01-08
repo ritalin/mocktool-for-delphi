@@ -20,7 +20,8 @@ uses
   CreateExpectRolesTest in 'CreateExpectRolesTest.pas',
   InterfaceRecordingProxyTest in 'InterfaceRecordingProxyTest.pas',
   MockTest in 'MockTest.pas',
-  ExpectConbinationTest in 'ExpectConbinationTest.pas';
+  ExpectConbinationTest in 'ExpectConbinationTest.pas',
+  MockTools.FormatHelper in '..\Sources\MockTools.FormatHelper.pas';
 
 var
   runner : ITestRunner;

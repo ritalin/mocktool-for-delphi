@@ -22,7 +22,7 @@ function AfterOnce(const AMethodName : string) : TMockExpectWrapper;
 implementation
 
 uses
-  MockTools.Core
+  MockTools.Core, MockTools.FormatHelper
 ;
 
 function EvalOption(negate: boolean): string;
@@ -55,7 +55,7 @@ begin
           function (invoker: TMockAction; count: integer; opt: TVerifyResult.TOption): string
           begin
             Result := Format('A method (%s), call count must%s match (expect: %d, actual: %d)', [
-              invoker.Method.Name, EvalOption(not (opt in [TVerifyResult.TOption.Negate])), times, count
+              FormatMethodName(invoker.Method), EvalOption(not (opt in [TVerifyResult.TOption.Negate])), times, count
             ]);
           end
         );
@@ -90,7 +90,7 @@ begin
           function (invoker: TMockAction; count: integer; opt: TVerifyResult.TOption): string
           begin
             Result := Format('At least %d times, a method (%s) must%s be called (actual: %d)', [
-              times, EvalOption(opt in [TVerifyResult.TOption.Negate]), invoker.Method.Name, count
+              times, EvalOption(opt in [TVerifyResult.TOption.Negate]), FormatMethodName(invoker.Method), count
             ]);
           end
         );
@@ -120,7 +120,7 @@ begin
           function (invoker: TMockAction; count: integer; opt: TVerifyResult.TOption): string
           begin
             Result := Format('A method (%s) must%s be called greater than %d times (actual: %d)', [
-              invoker.Method.Name, EvalOption(opt in [TVerifyResult.TOption.Negate]), times, count
+              FormatMethodName(invoker.Method), EvalOption(opt in [TVerifyResult.TOption.Negate]), times, count
             ]);
           end
         );
@@ -145,7 +145,7 @@ begin
           function (invoker: TMockAction; count: integer; opt: TVerifyResult.TOption): string
           begin
             Result := Format('A method (%s) must%s be called between %d and %d (actual: %d)', [
-              invoker.Method.Name, EvalOption(opt in [TVerifyResult.TOption.Negate]), a, b, count
+              FormatMethodName(invoker.Method), EvalOption(opt in [TVerifyResult.TOption.Negate]), a, b, count
             ]);
           end
         );
@@ -199,7 +199,7 @@ begin
           function (invoker: TMockAction; opt: TVerifyResult.TOption): string
           begin
             Result := Format('Exactly once, a method (%s) must%s be called before "%s"', [
-              AMethodName, EvalOption(opt in [TVerifyResult.TOption.Negate]), invoker.Method.Name
+              AMethodName, EvalOption(opt in [TVerifyResult.TOption.Negate]), FormatMethodName(invoker.Method)
             ]);
           end
         );
@@ -244,7 +244,7 @@ begin
           function (invoker: TMockAction; opt: TVerifyResult.TOption): string
           begin
             Result := Format('At least once, a method (%s) must%s be called before "%s"', [
-              AMethodName, EvalOption(opt in [TVerifyResult.TOption.Negate]), invoker.Method.Name
+              AMethodName, EvalOption(opt in [TVerifyResult.TOption.Negate]), FormatMethodName(invoker.Method)
             ]);
           end
         );
@@ -298,7 +298,7 @@ begin
           function (invoker: TMockAction; opt: TVerifyResult.TOption): string
           begin
             Result := Format('Exactly once, a method (%s) must%s be called after "%s"', [
-              AMethodName, EvalOption(opt in [TVerifyResult.TOption.Negate]), invoker.Method.Name
+              AMethodName, EvalOption(opt in [TVerifyResult.TOption.Negate]), FormatMethodName(invoker.Method)
             ]);
           end
         );
@@ -343,7 +343,7 @@ begin
           function (invoker: TMockAction; opt: TVerifyResult.TOption): string
           begin
             Result := Format('At least once, a method (%s) must%s be called after "%s"', [
-              AMethodName, EvalOption(opt in [TVerifyResult.TOption.Negate]), invoker.Method.Name
+              AMethodName, EvalOption(opt in [TVerifyResult.TOption.Negate]), FormatMethodName(invoker.Method)
             ]);
           end
         );

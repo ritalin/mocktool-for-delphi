@@ -48,7 +48,7 @@ type
   private
     FInvoked: boolean;
     FProvider: TFunc<TRttiMethod, T>;
-    function FailedReportText(opt: TVerifyResult.TOption): string;
+    function FailedReportText(action: TMockAction): TFunc<TVerifyResult.TOption, string>;
   protected
     procedure DoInvokeInternal(const willReturn: T; var outResult: TValue); virtual; abstract;
   protected
@@ -241,7 +241,7 @@ function HasRtti(info: PTypeInfo): boolean;
 implementation
 
 uses
-  System.SyncObjs
+  System.SyncObjs, MockTools.FormatHelper
 ;
 
 { TExpectRole }
@@ -306,9 +306,14 @@ begin
   DoInvokeInternal(FProvider(method), outResult);
 end;
 
-function TAbstractSetupRole<T>.FailedReportText(opt: TVerifyResult.TOption): string;
+function TAbstractSetupRole<T>.FailedReportText(action: TMockAction): TFunc<TVerifyResult.TOption, string>;
 begin
-  Result := 'Not called';
+  Result :=
+    function (opt: TVerifyResult.TOption): string
+    begin
+      Result := Format('%s is not called', [FormatMethodName(action.Method)]);
+    end
+  ;
 end;
 
 function TAbstractSetupRole<T>.Verify(invoker: TMockAction): TVerifyResult;
@@ -323,7 +328,7 @@ begin
   end;
 
   Result := TVerifyResult.Create(
-    Self.FailedReportText, status, TVerifyResult.TOption.None
+    Self.FailedReportText(invoker), status, TVerifyResult.TOption.None
   );
 end;
 
@@ -927,8 +932,9 @@ begin
       FSession.Callstacks.Add(Method);
 
       if not FSession.TryFindAction(Method, Args, action) then begin
-        DoInvoke := true;
-        Exit;
+        DoInvoke := Method.DispatchKind <> TDispatchKind.dkInterface;
+
+        Assert(DoInvoke, Format('Method (%s) is not arranged.', [FormatMethodName(Method)]));
       end
       else begin
         for role in action.Roles do begin
