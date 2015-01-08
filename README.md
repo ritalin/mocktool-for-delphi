@@ -37,7 +37,7 @@ and [ritalin/haxe-should](https://github.com/ritalin/haxe-should)
 
 ### Object mocking
 
-```
+```delphi
 var
   mock: TMock<TSomeObject>;
 begin
@@ -55,7 +55,7 @@ end;
 
 **Hint** : interface most activated RTTI. Please, use {$M+}/{$M-} compiler instruction.
 
-```
+```delphi
 {$M+}
 type ICounter = interface
   procedure CountUp;
@@ -77,7 +77,7 @@ end;
 
 ### Interface switching
 
-```
+```delphi
 {$M+}
 type IShowing = interface
   function ToString;
@@ -99,7 +99,7 @@ begin
 
 ### Stub setup
 
-```
+```delphi
 var
   mock: TMock<TSomeObject>;
 begin
