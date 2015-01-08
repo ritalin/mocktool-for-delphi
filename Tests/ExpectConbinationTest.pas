@@ -10,6 +10,8 @@ type
   _Expect_Conbination_Test = class(TObject) 
   public
     [Test] procedure _Not_Expection;
+    [Test] procedure _And_Expection;
+    [Test] procedure _And_Expection_Failed;
   end;
 
 implementation
@@ -21,6 +23,80 @@ uses
 ;
 
 { _Expect_Conbination_Test }
+
+procedure _Expect_Conbination_Test._And_Expection;
+var
+  mock: TMock<Icounter>;
+begin
+  mock := TMock.Implements<Icounter>;
+  mock
+    .Setup.WillReturn(256)
+    .Expect(BeforeOnce('CountUp') and Once)
+    .When.CallCount
+  ;
+
+  Its('mock.verify[0]').Call(
+    procedure
+    begin
+      mock.VerifyAll;
+    end
+  )
+  .Should(BeThrowenException(ETestFailure));
+
+  mock.Instance.CountUp;
+
+  Its('mock.verify[1]').Call(
+    procedure
+    begin
+      mock.VerifyAll;
+    end
+  )
+  .Should(BeThrowenException(ETestFailure));
+
+  Its('count[2]').Val(mock.Instance.CallCount).Should(BeEqualTo(256));
+
+  mock.VerifyAll; // passed
+
+  Its('count[3]').Val(mock.Instance.CallCount).Should(BeEqualTo(256));
+
+  Its('mock.verify[3]').Call(
+    procedure
+    begin
+      mock.VerifyAll;
+    end
+  )
+  .Should(BeThrowenException(ETestFailure));
+end;
+
+procedure _Expect_Conbination_Test._And_Expection_Failed;
+var
+  mock: TMock<Icounter>;
+begin
+  mock := TMock.Implements<Icounter>;
+  mock
+    .Setup.WillReturn(256)
+    .Expect(BeforeOnce('CountUp') and Once)
+    .When.CallCount
+  ;
+
+  Its('mock.verify[0]').Call(
+    procedure
+    begin
+      mock.VerifyAll;
+    end
+  )
+  .Should(BeThrowenException(ETestFailure));
+
+  Its('count[1]').Val(mock.Instance.CallCount).Should(BeEqualTo(256));
+
+  Its('mock.verify[1]').Call(
+    procedure
+    begin
+      mock.VerifyAll;
+    end
+  )
+  .Should(BeThrowenException(ETestFailure));
+end;
 
 procedure _Expect_Conbination_Test._Not_Expection;
 var

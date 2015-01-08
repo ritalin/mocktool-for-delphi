@@ -16,6 +16,7 @@ type
     FExpect: IMockExpect;
   public
     class operator LogicalNot(expect: TMockExpectWrapper): TMockExpectWrapper;
+    class operator LogicalAnd(lhs, rhs: TMockExpectWrapper): TMockExpectWrapper;
   public
     function CreateRole(const callerInfo: IMockSession): IMockRole;
   public
@@ -133,7 +134,7 @@ type
 
   TNotExpect = class(TInterfacedObject, IMockExpect)
   private type
-    TMockRoleNot = class(TInterfacedObject, IMockRole)
+    TMockRole = class(TInterfacedObject, IMockRole)
     private
       FParentRole: IMockRole;
     protected
@@ -149,6 +150,30 @@ type
     function CreateRole(const callerInfo: IMockSession): IMockRole;
   public
     constructor Create(const expect: IMockExpect);
+  end;
+
+  TAndExpect = class(TInterfacedObject, IMockExpect)
+  private type
+    TMockRole = class(TInterfacedObject, IMockRole)
+    private
+      FLeftRole: IMockRole;
+      FRightRole: IMockRole;
+        FCallerInfo: IMockSession;
+    protected
+      procedure DoInvoke(const methodName: TRttiMethod; var outResult: TValue);
+      function Verify(invoker: TMockAction): TVerifyResult;
+    public
+      constructor Create(const callerInfo: IMockSession; const lhs, rhs: IMockRole);
+    end;
+  private
+    FParentExpect: IMockExpect;
+    FLeftExpect: IMockExpect;
+    FRightExpect: IMockExpect;
+  protected
+    { IMockExpect }
+    function CreateRole(const callerInfo: IMockSession): IMockRole;
+  public
+    constructor Create(const lhs, rhs: IMockExpect);
   end;
 
 implementation
@@ -206,7 +231,17 @@ end;
 class operator TMockExpectWrapper.LogicalNot(
   expect: TMockExpectWrapper): TMockExpectWrapper;
 begin
-  Result := TMockExpectWrapper.Create(TNotExpect.Create(expect.FExpect));
+  Result := TMockExpectWrapper.Create(
+    TNotExpect.Create(expect.FExpect)
+  );
+end;
+
+class operator TMockExpectWrapper.LogicalAnd(lhs,
+  rhs: TMockExpectWrapper): TMockExpectWrapper;
+begin
+  Result := TMockExpectWrapper.Create(
+    TAndExpect.Create(lhs.FExpect, rhs.FExpect)
+  );
 end;
 
 { TNotExpect }
@@ -219,24 +254,24 @@ end;
 
 function TNotExpect.CreateRole(const callerInfo: IMockSession): IMockRole;
 begin
-  Result := TMockRoleNot.Create(FParentExpect.CreateRole(callerInfo));
+  Result := TMockRole.Create(FParentExpect.CreateRole(callerInfo));
 end;
 
 { TNotExpect.TMockRoleNot }
 
-constructor TNotExpect.TMockRoleNot.Create(const role: IMockRole);
+constructor TNotExpect.TMockRole.Create(const role: IMockRole);
 begin
   Assert(Assigned(role));
   FParentRole := role;
 end;
 
-procedure TNotExpect.TMockRoleNot.DoInvoke(const methodName: TRttiMethod;
+procedure TNotExpect.TMockRole.DoInvoke(const methodName: TRttiMethod;
   var outResult: TValue);
 begin
   FParentRole.DoInvoke(methodName, outResult);
 end;
 
-function TNotExpect.TMockRoleNot.Verify(invoker: TMockAction): TVerifyResult;
+function TNotExpect.TMockRole.Verify(invoker: TMockAction): TVerifyResult;
 begin
   Result := FParentRole.Verify(invoker);
 
@@ -245,6 +280,51 @@ begin
   end
   else begin
     Result.FOption := TVerifyResult.TOption.Negate;
+  end;
+end;
+
+{ TAndExpect }
+
+constructor TAndExpect.Create(const lhs, rhs: IMockExpect);
+begin
+  Assert(Assigned(lhs));
+  Assert(Assigned(rhs));
+
+  FLeftExpect := lhs;
+  FRightExpect := rhs;
+end;
+
+function TAndExpect.CreateRole(const callerInfo: IMockSession): IMockRole;
+begin
+  Result := TMockRole.Create(callerInfo, FLeftExpect.CreateRole(callerInfo), FRightExpect.CreateRole(callerInfo));
+end;
+
+{ TAndExpect.TMockRole }
+
+constructor TAndExpect.TMockRole.Create(const callerInfo: IMockSession; const lhs, rhs: IMockRole);
+begin
+  Assert(Assigned(callerInfo));
+  Assert(Assigned(lhs));
+  Assert(Assigned(rhs));
+
+  FCallerInfo := callerInfo;
+  FLeftRole := lhs;
+  FRightRole := rhs;
+end;
+
+procedure TAndExpect.TMockRole.DoInvoke(const methodName: TRttiMethod;
+  var outResult: TValue);
+begin
+  FLeftRole.DoInvoke(methodName, outResult);
+  FRightRole.DoInvoke(methodName, outResult);
+end;
+
+function TAndExpect.TMockRole.Verify(invoker: TMockAction): TVerifyResult;
+begin
+  Result := FLeftRole.Verify(invoker);
+
+  if Result.Status = TVerifyResult.TStatus.Passed then begin
+    Result := FRightRole.Verify(invoker);
   end;
 end;
 
