@@ -12,6 +12,11 @@ type
     [Test] procedure _Not_Expection;
     [Test] procedure _And_Expection;
     [Test] procedure _And_Expection_Failed;
+    [Test] procedure _And_Expection_Failed_2;
+    [Test] procedure _Or_Expection;
+    [Test] procedure _Or_Expection_2;
+    [Test] procedure _Or_Expection_3;
+    [Test] procedure _Or_Expection_Failed;
   end;
 
 implementation
@@ -68,6 +73,39 @@ begin
   .Should(BeThrowenException(ETestFailure));
 end;
 
+procedure _Expect_Conbination_Test._And_Expection_Failed_2;
+var
+  mock: TMock<Icounter>;
+begin
+  mock := TMock.Implements<Icounter>;
+  mock
+    .Setup.WillReturn(256)
+    .Expect(BeforeOnce('CountUp') and Once)
+    .When.CallCount
+  ;
+
+  Its('mock.verify[0]').Call(
+    procedure
+    begin
+      mock.VerifyAll;
+    end
+  )
+  .Should(BeThrowenException(ETestFailure));
+
+  mock.Instance.CountUp;
+  mock.Instance.CountUp;
+
+  Its('count[1]').Val(mock.Instance.CallCount).Should(BeEqualTo(256));
+
+  Its('mock.verify[1]').Call(
+    procedure
+    begin
+      mock.VerifyAll;
+    end
+  )
+  .Should(BeThrowenException(ETestFailure));
+end;
+
 procedure _Expect_Conbination_Test._And_Expection_Failed;
 var
   mock: TMock<Icounter>;
@@ -90,6 +128,137 @@ begin
   Its('count[1]').Val(mock.Instance.CallCount).Should(BeEqualTo(256));
 
   Its('mock.verify[1]').Call(
+    procedure
+    begin
+      mock.VerifyAll;
+    end
+  )
+  .Should(BeThrowenException(ETestFailure));
+end;
+
+procedure _Expect_Conbination_Test._Or_Expection;
+var
+  mock: TMock<Icounter>;
+begin
+  mock := TMock.Implements<Icounter>([IShowing]);
+  mock
+    .Setup.WillReturn(999)
+    .Expect(BeforeOnce('CountUp') or AfterOnce('ToString'))
+    .When.CallCount
+  ;
+
+  Its('mock.verify[0]').Call(
+    procedure
+    begin
+      mock.VerifyAll;
+    end
+  )
+  .Should(BeThrowenException(ETestFailure));
+
+  mock.Instance.CountUp;
+  Its('count[2]').Val(mock.Instance.CallCount).Should(BeEqualTo(999));
+
+  mock.VerifyAll; // passed
+end;
+
+procedure _Expect_Conbination_Test._Or_Expection_2;
+var
+  mock: TMock<Icounter>;
+begin
+  mock := TMock.Implements<Icounter>([IShowing]);
+  mock
+    .Setup.WillReturn(999)
+    .Expect(BeforeOnce('CountUp') or AfterOnce('ToString'))
+    .When.CallCount
+  ;
+
+  Its('mock.verify[0]').Call(
+    procedure
+    begin
+      mock.VerifyAll;
+    end
+  )
+  .Should(BeThrowenException(ETestFailure));
+
+  mock.Instance.CountUp;
+  Its('count[1]').Val(mock.Instance.CallCount).Should(BeEqualTo(999));
+  mock.Instance<IShowing>.ToString;
+
+  mock.VerifyAll; // passed
+end;
+
+procedure _Expect_Conbination_Test._Or_Expection_3;
+var
+  mock: TMock<Icounter>;
+begin
+  mock := TMock.Implements<Icounter>([IShowing]);
+  mock
+    .Setup.WillReturn(999)
+    .Expect(BeforeOnce('CountUp') or AfterOnce('ToString'))
+    .When.CallCount
+  ;
+
+  Its('mock.verify[0]').Call(
+    procedure
+    begin
+      mock.VerifyAll;
+    end
+  )
+  .Should(BeThrowenException(ETestFailure));
+
+  Its('count[1]').Val(mock.Instance.CallCount).Should(BeEqualTo(999));
+  mock.Instance<IShowing>.ToString;
+
+  mock.VerifyAll; // passed
+end;
+
+procedure _Expect_Conbination_Test._Or_Expection_Failed;
+var
+  mock: TMock<Icounter>;
+begin
+  mock := TMock.Implements<Icounter>([IShowing]);
+  mock
+    .Setup.WillReturn(999)
+    .Expect(BeforeOnce('CountUp') or AfterOnce('ToString'))
+    .When.CallCount
+  ;
+
+  Its('mock.verify[0]').Call(
+    procedure
+    begin
+      mock.VerifyAll;
+    end
+  )
+  .Should(BeThrowenException(ETestFailure));
+
+  mock.Instance.CountUp;
+  mock.Instance.CountUp;
+
+  Its('mock.verify[1]').Call(
+    procedure
+    begin
+      mock.VerifyAll;
+    end
+  )
+  .Should(BeThrowenException(ETestFailure));
+
+  Its('count[2]').Val(mock.Instance.CallCount).Should(BeEqualTo(999));
+
+  Its('mock.verify[2]').Call(
+    procedure
+    begin
+      mock.VerifyAll;
+    end
+  )
+  .Should(BeThrowenException(ETestFailure));
+
+  mock.Instance<IShowing>.ToString;
+
+  mock.VerifyAll; // passed
+
+  mock.Instance<IShowing>.ToString;
+
+  Its('mock.verify[3]').Call(
     procedure
     begin
       mock.VerifyAll;

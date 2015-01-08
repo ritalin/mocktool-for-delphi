@@ -17,6 +17,7 @@ type
   public
     class operator LogicalNot(expect: TMockExpectWrapper): TMockExpectWrapper;
     class operator LogicalAnd(lhs, rhs: TMockExpectWrapper): TMockExpectWrapper;
+    class operator LogicalOr(lhs, rhs: TMockExpectWrapper): TMockExpectWrapper;
   public
     function CreateRole(const callerInfo: IMockSession): IMockRole;
   public
@@ -158,15 +159,35 @@ type
     private
       FLeftRole: IMockRole;
       FRightRole: IMockRole;
-        FCallerInfo: IMockSession;
     protected
       procedure DoInvoke(const methodName: TRttiMethod; var outResult: TValue);
       function Verify(invoker: TMockAction): TVerifyResult;
     public
-      constructor Create(const callerInfo: IMockSession; const lhs, rhs: IMockRole);
+      constructor Create(const lhs, rhs: IMockRole);
     end;
   private
-    FParentExpect: IMockExpect;
+    FLeftExpect: IMockExpect;
+    FRightExpect: IMockExpect;
+  protected
+    { IMockExpect }
+    function CreateRole(const callerInfo: IMockSession): IMockRole;
+  public
+    constructor Create(const lhs, rhs: IMockExpect);
+  end;
+
+  TOrExpect = class(TInterfacedObject, IMockExpect)
+  private type
+    TMockRole = class(TInterfacedObject, IMockRole)
+    private
+      FLeftRole: IMockRole;
+      FRightRole: IMockRole;
+    protected
+      procedure DoInvoke(const methodName: TRttiMethod; var outResult: TValue);
+      function Verify(invoker: TMockAction): TVerifyResult;
+    public
+      constructor Create(const lhs, rhs: IMockRole);
+    end;
+  private
     FLeftExpect: IMockExpect;
     FRightExpect: IMockExpect;
   protected
@@ -236,6 +257,14 @@ begin
   );
 end;
 
+class operator TMockExpectWrapper.LogicalOr(lhs,
+  rhs: TMockExpectWrapper): TMockExpectWrapper;
+begin
+  Result := TMockExpectWrapper.Create(
+    TOrExpect.Create(lhs.FExpect, rhs.FExpect)
+  );
+end;
+
 class operator TMockExpectWrapper.LogicalAnd(lhs,
   rhs: TMockExpectWrapper): TMockExpectWrapper;
 begin
@@ -296,18 +325,16 @@ end;
 
 function TAndExpect.CreateRole(const callerInfo: IMockSession): IMockRole;
 begin
-  Result := TMockRole.Create(callerInfo, FLeftExpect.CreateRole(callerInfo), FRightExpect.CreateRole(callerInfo));
+  Result := TMockRole.Create(FLeftExpect.CreateRole(callerInfo), FRightExpect.CreateRole(callerInfo));
 end;
 
 { TAndExpect.TMockRole }
 
-constructor TAndExpect.TMockRole.Create(const callerInfo: IMockSession; const lhs, rhs: IMockRole);
+constructor TAndExpect.TMockRole.Create(const lhs, rhs: IMockRole);
 begin
-  Assert(Assigned(callerInfo));
   Assert(Assigned(lhs));
   Assert(Assigned(rhs));
 
-  FCallerInfo := callerInfo;
   FLeftRole := lhs;
   FRightRole := rhs;
 end;
@@ -324,6 +351,49 @@ begin
   Result := FLeftRole.Verify(invoker);
 
   if Result.Status = TVerifyResult.TStatus.Passed then begin
+    Result := FRightRole.Verify(invoker);
+  end;
+end;
+
+{ TOrExpect }
+
+constructor TOrExpect.Create(const lhs, rhs: IMockExpect);
+begin
+  Assert(Assigned(lhs));
+  Assert(Assigned(rhs));
+
+  FLeftExpect := lhs;
+  FRightExpect := rhs;
+end;
+
+function TOrExpect.CreateRole(const callerInfo: IMockSession): IMockRole;
+begin
+  Result := TMockRole.Create(FLeftExpect.CreateRole(callerInfo), FRightExpect.CreateRole(callerInfo));
+end;
+
+{ TOrExpect.TMockRole }
+
+constructor TOrExpect.TMockRole.Create(const lhs, rhs: IMockRole);
+begin
+  Assert(Assigned(lhs));
+  Assert(Assigned(rhs));
+
+  FLeftRole := lhs;
+  FRightRole := rhs;
+end;
+
+procedure TOrExpect.TMockRole.DoInvoke(const methodName: TRttiMethod;
+  var outResult: TValue);
+begin
+  FLeftRole.DoInvoke(methodName, outResult);
+  FRightRole.DoInvoke(methodName, outResult);
+end;
+
+function TOrExpect.TMockRole.Verify(invoker: TMockAction): TVerifyResult;
+begin
+  Result := FLeftRole.Verify(invoker);
+
+  if Result.Status = TVerifyResult.TStatus.Failed then begin
     Result := FRightRole.Verify(invoker);
   end;
 end;
