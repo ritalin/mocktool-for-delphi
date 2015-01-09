@@ -116,6 +116,7 @@ procedure _InterfaceRecordingProxy_Test._Has_Rtti;
 begin
   Its('INoRttiIntf').Val(HasRtti(TypeInfo(INoRttiIntf))).Should(not BeTrue);
   Its('ICounter').Val(HasRtti(TypeInfo(ICounter))).Should(BeTrue);
+  Its('IInfo').Val(HasRtti(TypeInfo(IInfo))).Should(not BeTrue);
 end;
 
 procedure _InterfaceRecordingProxy_Test._Create_Builder;

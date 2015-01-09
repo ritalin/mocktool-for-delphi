@@ -745,6 +745,13 @@ begin
   end;
 end;
 
+function HasRttiRecursive(t: TRttiType): boolean;
+begin
+  if (not Assigned(t)) or (t.Handle = TypeInfo(IInterface)) then Exit(true);
+
+  Result := (Length(t.GetMethods) > 0) and HasRttiRecursive(t.BaseType);
+end;
+
 function HasRtti(info: PTypeInfo): boolean;
 var
   ctx: TRttiContext;
@@ -757,7 +764,7 @@ begin
     t := ctx.GetType(info);
     Assert(Assigned(t), 'Interface not found.');
 
-    Result := Length(t.GetMethods) > 0;
+    Result := HasRttiRecursive(t);
   finally
     ctx.Free;
   end;

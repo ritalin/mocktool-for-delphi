@@ -20,6 +20,7 @@ type
   end;
   {$M-}
 
+
   TCounterObject = class(TInterfacedObject, ICounter)
   private
     FCount: integer;
@@ -33,6 +34,16 @@ type
   IShowing = interface
     ['{E1B6AB03-FF6F-4424-A54E-9C829B42529D}']
     function ToString: string;
+  end;
+  {$M-}
+
+  IReadOnlyInfo = interface
+    function GetInfomation: integer;
+  end;
+
+  {$M+}
+  IInfo = interface(IReadOnlyInfo)
+    procedure SetInfomation(const i: integer);
   end;
   {$M-}
 
