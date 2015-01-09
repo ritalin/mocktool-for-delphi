@@ -28,7 +28,14 @@ and [ritalin/haxe-should](https://github.com/ritalin/haxe-should)
 * This library is only tested by Delphi XE5.
 
 ## Usage
-1. Add unit: *MockTools.Mocks* in uses declative.
+### Project setup
+
+* Add to source path in project option.
+* Add *MockTools.ExceptionHandler.DUnitX.pas* (for DUnitX) or *MockTools.ExceptionHandler.DUnit.pas* (for DUnit) to project.
+
+### Introduction procedures for test fixture
+
+1. Add unit: *MockTools.Mocks* at the uses declative in test fixture.
 2. Arrange mock object.
 3. Act it.
 4. Assert expection.
@@ -109,6 +116,6 @@ begin
   mock.Instance.ToString;
 ```
 
-**Hint** : Stub also supprt interface switching.
+**Hint** : Stub also supprts interface switching.
 
 
