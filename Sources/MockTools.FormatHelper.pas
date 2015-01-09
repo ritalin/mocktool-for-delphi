@@ -3,11 +3,11 @@ unit MockTools.FormatHelper;
 interface
 
 uses
-  System.SysUtils, System.Rtti
+  System.SysUtils, System.Rtti, System.TypInfo
 ;
 
 function FormatVerifyResultOption(negate: boolean): string;
-function FormatMethodName(const method: TRttiMethod): string;
+function FormatMethodName(const t: PTypeInfo; const method: TRttiMethod): string;
 
 implementation
 
@@ -21,9 +21,9 @@ begin
   end;
 end;
 
-function FormatMethodName(const method: TRttiMethod): string;
+function FormatMethodName(const t: PTypeInfo; const method: TRttiMethod): string;
 begin
-  Result := Format('%s.%s', [method.Parent.Name, method.Name]);
+  Result := Format('%s.%s', [t^.Name, method.Name]);
 end;
 
 end.

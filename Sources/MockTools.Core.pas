@@ -314,7 +314,7 @@ begin
   Result :=
     function (opt: TVerifyResult.TOption): string
     begin
-      Result := Format('%s is not called', [FormatMethodName(action.Method)]);
+      Result := Format('%s is not called', [FormatMethodName(TypeInfo(T), action.Method)]);
     end
   ;
 end;
@@ -947,7 +947,7 @@ begin
       if not FSession.TryFindAction(Method, Args, action) then begin
         DoInvoke := Method.DispatchKind <> TDispatchKind.dkInterface;
 
-        Assert(DoInvoke, Format('Method (%s) is not arranged.', [FormatMethodName(Method)]));
+        Assert(DoInvoke, Format('Method (%s) is not arranged.', [FormatMethodName(TypeInfo(T), Method)]));
       end
       else begin
         for role in action.Roles do begin
