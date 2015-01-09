@@ -777,7 +777,7 @@ var
   t: TRttiInterfaceType;
 begin
   Assert(Assigned(info));
-  Assert(HasRtti(info), Format('"%s" do not have RTTI. Please use "{$M+}"', [info^.Name]));
+  Assert(HasRtti(info), Format('"%s" or parent interface does not have RTTI. Please use "{$M+}"', [info^.Name]));
 
   FIID := iid;
   FChildProxies := TDictionary<TGUID, IInterface>.Create;
