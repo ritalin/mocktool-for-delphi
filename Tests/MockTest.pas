@@ -155,7 +155,7 @@ procedure _Mock_Test._Create_Method_Expection_only;
 var
   mock: TMock<ICounter>;
 begin
-  mock := TMock.Implements<ICounter>([IShowing]);
+  mock := TMock.Implements<ICounter>;
   mock.Expect(Once).When.CountUp;
 
   Its('mock.verify[0]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
@@ -165,6 +165,19 @@ begin
   Its('mock.verify[1]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
   mock.Instance.CountUp;
+
+  Its('mock.verify[2]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+  mock := TMock.Implements<ICounter>([IShowing]);
+  mock.Expect<IShowing>(Once).When.ToString;
+
+  Its('mock.verify[0]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+  mock.Instance<IShowing>.ToString;
+
+  Its('mock.verify[1]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+  mock.Instance<IShowing>.ToString;
 
   Its('mock.verify[2]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 end;

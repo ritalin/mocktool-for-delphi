@@ -25,7 +25,8 @@ type
     function Stub: IMockSetup<T>; overload;
     function Stub<U: IInterface>: IMockSetup<U>; overload;
 
-    function Expect(const expect: TMockExpectWrapper): IWhen<T>;
+    function Expect(const expect: TMockExpectWrapper): IWhen<T>; overload;
+    function Expect<U: IInterface>(const expect: TMockExpectWrapper): IWhen<U>; overload;
 
     procedure VerifyAll; overload;
     function VerifyAll(const noThrow: boolean): TVerifyResult; overload;
@@ -146,6 +147,15 @@ begin
   Result := TMockSetup<U>.Create(TRoleInvokerBuilder<U>.Create(
     Self.BridgeProxy<U>(TypeInfo(T), TypeInfo(U)), FSession
   ), true);
+end;
+
+function TMock<T>.Expect<U>(const expect: TMockExpectWrapper): IWhen<U>;
+begin
+  Result :=
+    TWhen<U>.Create(TRoleInvokerBuilder<U>.Create(
+      Self.BridgeProxy<U>(TypeInfo(T), TypeInfo(U)), FSession))
+    .Expect(expect)
+  ;
 end;
 
 function TMock<T>.Stub: IMockSetup<T>;
