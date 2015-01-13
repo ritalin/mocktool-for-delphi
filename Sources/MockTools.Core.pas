@@ -16,7 +16,7 @@ type
     FReportProvider: TFunc<TMockAction, integer, TVerifyResult.TOption, string>;
   protected
     { IMockRole }
-    procedure DoInvoke(const method: TRttiMethod; var outResult: TValue);
+    procedure DoInvoke(const method: TRttiMethod; const args: TArray<TValue>; var outResult: TValue);
     function Verify(invoker: TMockAction): TVerifyResult;
   public
     function OnVerify(const verifire: TPredicate<integer>): TCountExpectRole;
@@ -35,7 +35,7 @@ type
     FReportProvider: TFunc<TMockAction, TVerifyResult.TOption, string>;
   protected
     { IMockRole }
-    procedure DoInvoke(const method: TRttiMethod; var outResult: TValue);
+    procedure DoInvoke(const method: TRttiMethod; const args: TArray<TValue>; var outResult: TValue);
     function Verify(invoker: TMockAction): TVerifyResult;
   public
     constructor Create(const onInvoke: TProc<TList<integer>>; const beforeVerify: TProc<TList<integer>>);
@@ -47,17 +47,17 @@ type
   TAbstractSetupRole<T> = class abstract(TInterfacedObject, IMockRole)
   private
     FInvoked: boolean;
-    FProvider: TFunc<TRttiMethod, T>;
+    FProvider: TFunc<TRttiMethod, TArray<TValue>, T>;
     FStub: Boolean;
     function FailedReportText(action: TMockAction): TFunc<TVerifyResult.TOption, string>;
   protected
     procedure DoInvokeInternal(const willReturn: T; var outResult: TValue); virtual; abstract;
   protected
     { IMockRole }
-    procedure DoInvoke(const method: TRttiMethod; var outResult: TValue);
+    procedure DoInvoke(const method: TRttiMethod; const args: TArray<TValue>; var outResult: TValue);
     function Verify(invoker: TMockAction): TVerifyResult;
   public
-    constructor Create(const provider: TFunc<TRttiMethod, T>; const isStub: boolean);
+    constructor Create(const provider: TFunc<TRttiMethod, TArray<TValue>, T>; const isStub: boolean);
   end;
 
   TMethodSetupRole = class(TAbstractSetupRole<TValue>)
@@ -102,13 +102,13 @@ type
     FBuilder: IMockRoleBuilder<T>;
     FIsStub: boolean;
   private
-    function WillExecuteInternal(const fn: TFunc<TRttiMethod, TValue>): IWhenOrExpect<T>;
+    function WillExecuteInternal(const fn: TFunc<TRttiMethod, TArray<TValue>, TValue>): IWhenOrExpect<T>;
   protected
     { IMockSetup<T> }
     function WillReturn(value: TValue): IWhenOrExpect<T>; overload;
     function WillReturn(intf: IInterface): IWhenOrExpect<T>; overload;
-    function WillExecute(const proc: TProc): IWhenOrExpect<T>; overload;
-    function WillExecute(const fn: TFunc<TValue>): IWhenOrExpect<T>; overload;
+    function WillExecute(const proc: TProc<TArray<TValue>>): IWhenOrExpect<T>; overload;
+    function WillExecute(const fn: TFunc<TArray<TValue>, TValue>): IWhenOrExpect<T>; overload;
     function WillRaise(const provider: TFunc<Exception>): IWhen<T>; overload;
   public
     constructor Create(const builder: IMockRoleBuilder<T>; const isStub: boolean);
@@ -273,7 +273,7 @@ begin
   Result := Self;
 end;
 
-procedure TCountExpectRole.DoInvoke(const method: TRttiMEthod; var outResult: TValue);
+procedure TCountExpectRole.DoInvoke(const method: TRttiMEthod; const args: TArray<TValue>; var outResult: TValue);
 begin
   TInterlocked.Increment(FCount);
 end;
@@ -301,7 +301,7 @@ end;
 
 { TAbstractSetupRole<T> }
 
-constructor TAbstractSetupRole<T>.Create(const provider: TFunc<TRttiMEthod, T>; const isStub: boolean);
+constructor TAbstractSetupRole<T>.Create(const provider: TFunc<TRttiMEthod, TArray<TValue>, T>; const isStub: boolean);
 begin
   System.Assert(Assigned(provider));
 
@@ -309,11 +309,11 @@ begin
   FStub := isStub;
 end;
 
-procedure TAbstractSetupRole<T>.DoInvoke(const method: TRttiMEthod; var outResult: TValue);
+procedure TAbstractSetupRole<T>.DoInvoke(const method: TRttiMEthod; const args: TArray<TValue>; var outResult: TValue);
 begin
   FInvoked := true;
 
-  DoInvokeInternal(FProvider(method), outResult);
+  DoInvokeInternal(FProvider(method, args), outResult);
 end;
 
 function TAbstractSetupRole<T>.FailedReportText(action: TMockAction): TFunc<TVerifyResult.TOption, string>;
@@ -624,7 +624,7 @@ end;
 function TMockSetup<T>.WillReturn(value: TValue): IWhenOrExpect<T>;
 begin
   Result := Self.WillExecuteInternal(
-    function (method: TRttiMethod) : TValue
+    function (method: TRttiMethod; args: TArray<TValue>) : TValue
     begin
       Result := value;
     end
@@ -634,7 +634,7 @@ end;
 function TMockSetup<T>.WillReturn(intf: IInterface): IWhenOrExpect<T>;
 begin
   Result := Self.WillExecuteInternal(
-    function (method: TRttiMethod) : TValue
+    function (method: TRttiMethod; args: TArray<TValue>) : TValue
     begin
       if Supports(intf, IInterfaceedSubject) then begin
         TValue.Make(@intf, method.ReturnType.Handle, Result);
@@ -647,29 +647,29 @@ begin
 end;
 
 function TMockSetup<T>.WillExecuteInternal(
-  const fn: TFunc<TRttiMethod, TValue>): IWhenOrExpect<T>;
+  const fn: TFunc<TRttiMethod, TArray<TValue>, TValue>): IWhenOrExpect<T>;
 begin
   FBuilder.PushRole(TMethodSetupRole.Create(fn, FIsStub));
 
   Result := TWhen<T>.Create(FBuilder);
 end;
 
-function TMockSetup<T>.WillExecute(const fn: TFunc<TValue>): IWhenOrExpect<T>;
+function TMockSetup<T>.WillExecute(const fn: TFunc<TArray<TValue>, TValue>): IWhenOrExpect<T>;
 begin
   Result := Self.WillExecuteInternal(
-    function (method: TRttiMethod): TValue
+    function (method: TRttiMethod; args: TArray<TValue>): TValue
     begin
-      Result := fn();
+      Result := fn(args);
     end
   );
 end;
 
-function TMockSetup<T>.WillExecute(const proc: TProc): IWhenOrExpect<T>;
+function TMockSetup<T>.WillExecute(const proc: TProc<TArray<TValue>>): IWhenOrExpect<T>;
 begin
   Result := Self.WillExecuteInternal(
-    function (method: TRttiMethod): TValue
+    function (method: TRttiMethod; args: TArray<TValue>): TValue
     begin
-      proc();
+      proc(args);
 
       Result := TValue.Empty;
     end
@@ -680,7 +680,7 @@ function TMockSetup<T>.WillRaise(
   const provider: TFunc<Exception>): IWhen<T>;
 begin
   FBuilder.PushRole(TExceptionSetupRole.Create(
-    function (method: TRttiMethod): Exception
+    function (method: TRttiMethod; args: TArray<TValue>): Exception
     begin
       Result := provider();
     end,
@@ -721,7 +721,7 @@ begin
   Result := Self;
 end;
 
-procedure TMethodCallExpectRole.DoInvoke(const method: TRttiMethod;
+procedure TMethodCallExpectRole.DoInvoke(const method: TRttiMethod; const args: TArray<TValue>;
   var outResult: TValue);
 begin
   Assert(Assigned(FOnInvoke));
@@ -983,7 +983,7 @@ begin
       end
       else begin
         for role in action.Roles do begin
-          role.DoInvoke(Method, Result);
+          role.DoInvoke(Method, Args, Result);
         end;
       end;
     end

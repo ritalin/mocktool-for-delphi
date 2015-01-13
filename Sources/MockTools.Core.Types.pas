@@ -41,8 +41,8 @@ type
   IMockSetup<T> = interface
     function WillReturn(value: TValue): IWhenOrExpect<T>; overload;
     function WillReturn(intf: IInterface): IWhenOrExpect<T>; overload;
-    function WillExecute(const proc: TProc): IWhenOrExpect<T>; overload;
-    function WillExecute(const fn: TFunc<TValue>): IWhenOrExpect<T>; overload;
+    function WillExecute(const proc: TProc<TArray<TValue>>): IWhenOrExpect<T>; overload;
+    function WillExecute(const fn: TFunc<TArray<TValue>, TValue>): IWhenOrExpect<T>; overload;
     function WillRaise(const provider: TFunc<Exception>): IWhen<T>; overload;
   end;
 
@@ -80,7 +80,7 @@ type
   end;
 
   IMockRole = interface
-    procedure DoInvoke(const methodName: TRttiMethod; var outResult: TValue);
+    procedure DoInvoke(const methodName: TRttiMethod; const args: TArray<TValue>; var outResult: TValue);
     function Verify(invoker: TMockAction): TVerifyResult;
   end;
 
@@ -145,7 +145,7 @@ type
     private
       FParentRole: IMockRole;
     protected
-      procedure DoInvoke(const methodName: TRttiMethod; var outResult: TValue);
+      procedure DoInvoke(const methodName: TRttiMethod; const args: TArray<TValue>; var outResult: TValue);
       function Verify(invoker: TMockAction): TVerifyResult;
     public
       constructor Create(const role: IMockRole);
@@ -166,7 +166,7 @@ type
       FLeftRole: IMockRole;
       FRightRole: IMockRole;
     protected
-      procedure DoInvoke(const methodName: TRttiMethod; var outResult: TValue);
+      procedure DoInvoke(const methodName: TRttiMethod; const args: TArray<TValue>; var outResult: TValue);
       function Verify(invoker: TMockAction): TVerifyResult;
     public
       constructor Create(const lhs, rhs: IMockRole);
@@ -188,7 +188,7 @@ type
       FLeftRole: IMockRole;
       FRightRole: IMockRole;
     protected
-      procedure DoInvoke(const methodName: TRttiMethod; var outResult: TValue);
+      procedure DoInvoke(const methodName: TRttiMethod; const args: TArray<TValue>; var outResult: TValue);
       function Verify(invoker: TMockAction): TVerifyResult;
     public
       constructor Create(const lhs, rhs: IMockRole);
@@ -300,10 +300,10 @@ begin
   FParentRole := role;
 end;
 
-procedure TNotExpect.TMockRole.DoInvoke(const methodName: TRttiMethod;
+procedure TNotExpect.TMockRole.DoInvoke(const methodName: TRttiMethod; const args: TArray<TValue>;
   var outResult: TValue);
 begin
-  FParentRole.DoInvoke(methodName, outResult);
+  FParentRole.DoInvoke(methodName, args, outResult);
 end;
 
 function TNotExpect.TMockRole.Verify(invoker: TMockAction): TVerifyResult;
@@ -345,11 +345,11 @@ begin
   FRightRole := rhs;
 end;
 
-procedure TAndExpect.TMockRole.DoInvoke(const methodName: TRttiMethod;
+procedure TAndExpect.TMockRole.DoInvoke(const methodName: TRttiMethod; const args: TArray<TValue>;
   var outResult: TValue);
 begin
-  FLeftRole.DoInvoke(methodName, outResult);
-  FRightRole.DoInvoke(methodName, outResult);
+  FLeftRole.DoInvoke(methodName, args, outResult);
+  FRightRole.DoInvoke(methodName, args, outResult);
 end;
 
 function TAndExpect.TMockRole.Verify(invoker: TMockAction): TVerifyResult;
@@ -388,11 +388,11 @@ begin
   FRightRole := rhs;
 end;
 
-procedure TOrExpect.TMockRole.DoInvoke(const methodName: TRttiMethod;
+procedure TOrExpect.TMockRole.DoInvoke(const methodName: TRttiMethod; const args: TArray<TValue>;
   var outResult: TValue);
 begin
-  FLeftRole.DoInvoke(methodName, outResult);
-  FRightRole.DoInvoke(methodName, outResult);
+  FLeftRole.DoInvoke(methodName, args, outResult);
+  FRightRole.DoInvoke(methodName, args, outResult);
 end;
 
 function TOrExpect.TMockRole.Verify(invoker: TMockAction): TVerifyResult;
