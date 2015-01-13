@@ -25,6 +25,8 @@ type
     function Stub: IMockSetup<T>; overload;
     function Stub<U: IInterface>: IMockSetup<U>; overload;
 
+    function Expect(const expect: TMockExpectWrapper): IWhen<T>;
+
     procedure VerifyAll; overload;
     function VerifyAll(const noThrow: boolean): TVerifyResult; overload;
 
@@ -56,6 +58,14 @@ uses
 ;
 
 { TMock<T> }
+
+function TMock<T>.Expect(const expect: TMockExpectWrapper): IWhen<T>;
+begin
+  Result :=
+    TWhen<T>.Create(TRoleInvokerBuilder<T>.Create(FRecordProxy, FSession))
+    .Expect(expect)
+  ;
+end;
 
 class operator TMock<T>.Implicit(const Value: TMock<T>): T;
 begin
