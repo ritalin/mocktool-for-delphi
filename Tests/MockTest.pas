@@ -91,7 +91,6 @@ begin
     end
   )
   .Should(BeThrowenException(EAbstractError));
-
 end;
 
 procedure _Mock_Test._Create_Interface_Mock;
