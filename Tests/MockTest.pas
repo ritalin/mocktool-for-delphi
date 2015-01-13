@@ -10,6 +10,7 @@ type
   _Mock_Test = class(TObject)
   public
     [Test] procedure _Create_Object_Mock;
+    [Test] procedure _Create_Object_Mock_unarranged;
     [Test] procedure _Create_Interface_Mock;
     [Test] procedure _Create_Interface_Mock_Multi_Intf;
     [Test] procedure _Create_NestedInterface_Mock;
@@ -18,6 +19,7 @@ type
 implementation
 
 uses
+  SysUtils,
   MockTools.Mocks, MockTools.Core.Types, MockTools.Mocks.CoreExpect,
   MockTarget,
   Should, Should.Constraint.CoreMatchers
@@ -59,6 +61,37 @@ begin
     end
   )
   .Should(BeThrowenException(ETestFailure));
+end;
+
+type
+  TAbstractTarget = class
+  public
+    function Text: string;
+    function Value: integer; virtual; abstract;
+  end;
+
+{ TAbstractTarget }
+
+function TAbstractTarget.Text: string;
+begin
+  Result := 'xyz';
+end;
+
+procedure _Mock_Test._Create_Object_Mock_unarranged;
+var
+  mock: TMock<TAbstractTarget>;
+begin
+  mock := TMock.Create<TAbstractTarget>;
+
+  Its('Text').Val(mock.Instance.Text).Should(BeEqualTo('xyz'));
+  Its('Value').Call(
+    procedure
+    begin
+      mock.Instance.Value;
+    end
+  )
+  .Should(BeThrowenException(EAbstractError));
+
 end;
 
 procedure _Mock_Test._Create_Interface_Mock;
