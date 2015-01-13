@@ -3,7 +3,7 @@ unit MockTools.Mocks;
 interface
 
 uses
-  System.SysUtils, Classes, System.Rtti, System.TypInfo, System.Generics.Defaults,
+  System.SysUtils, Classes, System.Rtti, System.TypInfo, System.Generics.Collections, System.Generics.Defaults,
   MockTools.Core.Types
 ;
 
@@ -13,6 +13,7 @@ type
     FSession: IMockSessionRecorder;
     FRecordProxy: IProxy<T>;
     FVirtualProxy: IReadOnlyProxy<T>;
+    FDependencies: TList<TFunc<boolean, TVerifyResult>>;
   private
     function BridgeProxy<U: IInterface>(const fromType, toType: PTypeInfo): IProxy<U>;
     class function ReportNoError(opt: TVerifyResult.TOption): string; static;
@@ -27,6 +28,8 @@ type
 
     function Expect(const expect: TMockExpectWrapper): IWhen<T>; overload;
     function Expect<U: IInterface>(const expect: TMockExpectWrapper): IWhen<U>; overload;
+
+    procedure DependsOn<U>(slaveMock: TMock<U>);
 
     procedure VerifyAll; overload;
     function VerifyAll(const noThrow: boolean): TVerifyResult; overload;
@@ -60,6 +63,16 @@ uses
 
 { TMock<T> }
 
+procedure TMock<T>.DependsOn<U>(slaveMock: TMock<U>);
+begin
+  FDependencies.Add(
+    function (noThrow: boolean): TVerifyResult
+    begin
+      Result := slaveMock.VerifyAll(noThrow);
+    end
+  );
+end;
+
 function TMock<T>.Expect(const expect: TMockExpectWrapper): IWhen<T>;
 begin
   Result :=
@@ -92,6 +105,7 @@ function TMock<T>.VerifyAll(const noThrow: boolean): TVerifyResult;
 var
   action: TMockAction;
   roles: TArray<IMockRole>;
+  dep: TFunc<boolean, TVerifyResult>;
 begin
   for action in FSession.Actions do begin
     roles := action.Roles;
@@ -104,6 +118,11 @@ begin
 
       gFalureProc(Result.Report);
     end;
+  end;
+
+  for dep in FDependencies do begin
+    Result := dep(noThrow);
+    if Result.Status <> TVerifyResult.TStatus.Passed then Exit;
   end;
 
   Result := TVerifyResult.Create(ReportNoError, TVerifyResult.TStatus.Passed, TVerifyResult.TOption.None);
@@ -167,6 +186,7 @@ end;
 
 class function TMock.Create<T>: TMock<T>;
 begin
+  Result.FDependencies := TList<TFunc<boolean, TVerifyResult>>.Create;
   Result.FSession := TMockSessionRecorder.Create;
   Result.FRecordProxy := TObjectRecordProxy<T>.Create;
   Result.FVirtualProxy := TVirtualProxy<T>.Create(TObjectRecordProxy<T>.Create, Result.FSession);
@@ -196,6 +216,7 @@ begin
   info := TypeInfo(T);
   iid := ExtractGuid(info);
 
+  Result.FDependencies := TList<TFunc<boolean, TVerifyResult>>.Create;
   Result.FSession := TMockSessionRecorder.Create;
   Result.FRecordProxy := TInterfaceRecordProxy<T>.Create(iid, info, withInterfaces);
   Result.FVirtualProxy := TVirtualProxy<T>.Create(

@@ -14,6 +14,7 @@ type
     [Test] procedure _Create_Interface_Mock;
     [Test] procedure _Create_Interface_Mock_Multi_Intf;
     [Test] procedure _Create_NestedInterface_Mock;
+    [Test] procedure _Create_NestedInterface_Mock_with_dependency;
     [Test] procedure _Create_Method_Expection_only;
   end;
 
@@ -194,6 +195,7 @@ procedure _Mock_Test._Create_NestedInterface_Mock;
 var
   masterMock: TMock<INestedInterfaceMaster>;
   slaveMock: TMock<ICounter>;
+  counter: ICounter;
 begin
   slaveMock := TMock.Implements<ICounter>;
   slaveMock.Setup.WillReturn(108).When.CallCount;
@@ -201,10 +203,43 @@ begin
   masterMock := TMock.Implements<INestedInterfaceMaster>;
   masterMock.Setup.WillReturn(slaveMock).When.GetCounter;
 
+  Its('masterMock.verify[0]').Val(masterMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+  Its('slaveMock.verify[0]').Val(slaveMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+  counter := masterMock.Instance.GetCounter;
+
+  Its('masterMock.verify[1]').Val(masterMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+  Its('slaveMock.verify[1]').Val(slaveMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
   Its('counter').Val(masterMock.Instance.GetCounter.CallCount).Should(BeEqualTo(108));
 
-  masterMock.VerifyAll;
-  slaveMock.VerifyAll;
+  Its('masterMock.verify[2]').Val(masterMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+  Its('slaveMock.verify[2]').Val(slaveMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+end;
+
+procedure _Mock_Test._Create_NestedInterface_Mock_with_dependency;
+var
+  masterMock: TMock<INestedInterfaceMaster>;
+  slaveMock: TMock<ICounter>;
+  counter: ICounter;
+begin
+  slaveMock := TMock.Implements<ICounter>;
+  slaveMock.Setup.WillReturn(108).When.CallCount;
+
+  masterMock := TMock.Implements<INestedInterfaceMaster>;
+  masterMock.Setup.WillReturn(slaveMock).When.GetCounter;
+
+  masterMock.DependsOn<ICounter>(slaveMock);
+
+  Its('mock.verify[0]').Val(masterMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+  counter := masterMock.Instance.GetCounter;
+
+  Its('mock.verify[1]').Val(masterMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+  Its('counter').Val(masterMock.Instance.GetCounter.CallCount).Should(BeEqualTo(108));
+
+  Its('mock.verify[2]').Val(masterMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 end;
 
 initialization
