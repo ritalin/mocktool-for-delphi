@@ -101,9 +101,12 @@ type
   private
     FBuilder: IMockRoleBuilder<T>;
     FIsStub: boolean;
+  private
+    function WillExecuteInternal(const fn: TFunc<TRttiMethod, TValue>): IWhenOrExpect<T>;
   protected
     { IMockSetup<T> }
     function WillReturn(value: TValue): IWhenOrExpect<T>; overload;
+    function WillReturn(intf: IInterface): IWhenOrExpect<T>; overload;
     function WillExecute(const proc: TProc): IWhenOrExpect<T>; overload;
     function WillExecute(const fn: TFunc<TValue>): IWhenOrExpect<T>; overload;
     function WillRaise(const provider: TFunc<Exception>): IWhen<T>; overload;
@@ -179,7 +182,7 @@ type
     destructor Destroy; override;
   end;
 
-  TInterfaceRecordProxy<T: IInterface> = class(TVirtualInterface, IProxy<T>, IRecordable, IInterface)
+  TInterfaceRecordProxy<T: IInterface> = class(TVirtualInterface, IProxy<T>, IRecordable, IInterfaceedSubject, IInterface)
   private var
     FIID: TGUID;
     FChildProxies: TDictionary<TGUID, IInterface>;
@@ -187,6 +190,7 @@ type
   private
     function ResolveTypes(const intf: array of TGUID): TArray<TRttiInterfaceType>;
     function QueryImplementedInterface(const IID: TGUID; out Obj): HResult;
+    function GetSubjectAsInterface: IInterface;
   protected
     { IRecordable }
     procedure BeginProxify(const callback: TInterceptBeforeNotify);
@@ -197,6 +201,9 @@ type
     { IReadOnlyProxy<T> }
     function GetSubject: T;
     function TryGetSubject(const info: PTypeInfo; out outResult): boolean;
+  protected
+    { IInterfaceedSubject }
+    function IInterfaceedSubject.GetSubject = GetSubjectAsInterface;
   public
     { IInterface }
     function QueryInterface(const IID: TGUID; out Obj): HResult; override; stdcall;
@@ -616,31 +623,51 @@ end;
 
 function TMockSetup<T>.WillReturn(value: TValue): IWhenOrExpect<T>;
 begin
-  Result := Self.WillExecute(
-    function : TValue
+  Result := Self.WillExecuteInternal(
+    function (method: TRttiMethod) : TValue
     begin
       Result := value;
     end
   );
 end;
 
-function TMockSetup<T>.WillExecute(const fn: TFunc<TValue>): IWhenOrExpect<T>;
+function TMockSetup<T>.WillReturn(intf: IInterface): IWhenOrExpect<T>;
 begin
-  FBuilder.PushRole(TMethodSetupRole.Create(
-    function (method: TRttiMethod): TValue
+  Result := Self.WillExecuteInternal(
+    function (method: TRttiMethod) : TValue
     begin
-      Result := fn();
-    end,
-    FIsStub
-  ));
+      if Supports(intf, IInterfaceedSubject) then begin
+        TValue.Make(@intf, method.ReturnType.Handle, Result);
+      end
+      else begin
+        Result := TValue.From<TObject>(TObject(intf));
+      end;
+    end
+  );
+end;
+
+function TMockSetup<T>.WillExecuteInternal(
+  const fn: TFunc<TRttiMethod, TValue>): IWhenOrExpect<T>;
+begin
+  FBuilder.PushRole(TMethodSetupRole.Create(fn, FIsStub));
 
   Result := TWhen<T>.Create(FBuilder);
 end;
 
+function TMockSetup<T>.WillExecute(const fn: TFunc<TValue>): IWhenOrExpect<T>;
+begin
+  Result := Self.WillExecuteInternal(
+    function (method: TRttiMethod): TValue
+    begin
+      Result := fn();
+    end
+  );
+end;
+
 function TMockSetup<T>.WillExecute(const proc: TProc): IWhenOrExpect<T>;
 begin
-  Result := Self.WillExecute(
-    function : TValue
+  Result := Self.WillExecuteInternal(
+    function (method: TRttiMethod): TValue
     begin
       proc();
 
@@ -884,6 +911,11 @@ begin
 end;
 
 function TInterfaceRecordProxy<T>.GetSubject: T;
+begin
+  Self.QueryInterface(FIID, Result);
+end;
+
+function TInterfaceRecordProxy<T>.GetSubjectAsInterface: IInterface;
 begin
   Self.QueryInterface(FIID, Result);
 end;

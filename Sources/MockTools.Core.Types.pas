@@ -40,6 +40,7 @@ type
 
   IMockSetup<T> = interface
     function WillReturn(value: TValue): IWhenOrExpect<T>; overload;
+    function WillReturn(intf: IInterface): IWhenOrExpect<T>; overload;
     function WillExecute(const proc: TProc): IWhenOrExpect<T>; overload;
     function WillExecute(const fn: TFunc<TValue>): IWhenOrExpect<T>; overload;
     function WillRaise(const provider: TFunc<Exception>): IWhen<T>; overload;
@@ -110,6 +111,11 @@ type
     procedure BeginProxify(const callback: TInterceptBeforeNotify);
     procedure EndProxify;
     function IsProxifying: boolean;
+  end;
+
+  IInterfaceedSubject = interface
+    ['{6E7DE293-B7A2-4C3D-9D1E-5A4C4F0A152E}']
+    function GetSubject: IInterface;
   end;
 
   IProxy<T> = interface(IReadOnlyProxy<T>)

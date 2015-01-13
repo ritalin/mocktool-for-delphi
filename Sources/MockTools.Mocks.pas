@@ -3,16 +3,17 @@ unit MockTools.Mocks;
 interface
 
 uses
-  System.SysUtils, System.Rtti, System.TypInfo, System.Generics.Defaults,
+  System.SysUtils, Classes, System.Rtti, System.TypInfo, System.Generics.Defaults,
   MockTools.Core.Types
 ;
 
 type
   TMock<T> = record
-  private
+  private var
     FSession: IMockSessionRecorder;
     FRecordProxy: IProxy<T>;
     FVirtualProxy: IReadOnlyProxy<T>;
+  private
     function BridgeProxy<U: IInterface>(const fromType, toType: PTypeInfo): IProxy<U>;
     class function ReportNoError(opt: TVerifyResult.TOption): string; static;
   public
@@ -153,19 +154,12 @@ end;
 
 class function TMock.ExtractGuid(info: PTypeInfo): TGUID;
 var
-  ctx: TRttiContext;
-  t: TRttiType;
+  d: PTypeData;
 begin
-  ctx := TRttiContext.Create;
-  try
-    t := ctx.GetType(info);
+  Assert(info.Kind = tkInterface);
 
-    Assert(t is TRttiInterfaceType);
-
-    Result := TRttiInterfaceType(t).GUID;
-  finally
-    ctx.Free;
-  end;
+  d := GetTypeData(info);
+  Result := d.Guid;
 end;
 
 class function TMock.Implements<T>: TMock<T>;

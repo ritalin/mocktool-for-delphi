@@ -12,6 +12,7 @@ type
     [Test] procedure _Create_Object_Mock;
     [Test] procedure _Create_Interface_Mock;
     [Test] procedure _Create_Interface_Mock_Multi_Intf;
+    [Test] procedure _Create_NestedInterface_Mock;
   end;
 
 implementation
@@ -115,6 +116,31 @@ begin
   Its('content[2]').Val(mock.Instance<IShowing>.ToString).Should(BeEqualTo('FizzBazz'));
 
   Its('mock.verify[3]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+end;
+
+type
+  {$M+}
+  INestedInterfaceMaster = interface
+    ['{4D81F82A-EC44-40D3-901B-CC22CFE0C642}']
+    function GetCounter: ICounter;
+  end;
+  {$M-}
+
+procedure _Mock_Test._Create_NestedInterface_Mock;
+var
+  masterMock: TMock<INestedInterfaceMaster>;
+  slaveMock: TMock<ICounter>;
+begin
+  slaveMock := TMock.Implements<ICounter>;
+  slaveMock.Setup.WillReturn(108).When.CallCount;
+
+  masterMock := TMock.Implements<INestedInterfaceMaster>;
+  masterMock.Setup.WillReturn(slaveMock).When.GetCounter;
+
+  Its('counter').Val(masterMock.Instance.GetCounter.CallCount).Should(BeEqualTo(108));
+
+  masterMock.VerifyAll;
+  slaveMock.VerifyAll;
 end;
 
 initialization
