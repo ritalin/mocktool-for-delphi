@@ -18,6 +18,7 @@ function Before(const AMethodName : string) : TMockExpectWrapper;
 function BeforeOnce(const AMethodName : string) : TMockExpectWrapper;
 function After(const AMethodName : string) : TMockExpectWrapper;
 function AfterOnce(const AMethodName : string) : TMockExpectWrapper;
+function AssertThat(const assertion: TProc<TArray<TValue>>): TMockExpectWrapper;
 
 implementation
 
@@ -354,6 +355,23 @@ begin
             ]);
           end
         );
+    end
+  );
+end;
+
+function AssertThat(const assertion: TProc<TArray<TValue>>): TMockExpectWrapper;
+begin
+  Result := TExpectRoleFactory.CreateAsWrapper(
+    function (callerInfo: IMockSession): IMockRole
+    begin
+      Result := TMethodSetupRole.Create(
+        function (method: TRttiMethod; args: TArray<TValue>): TValue
+        begin
+          assertion(args);
+        end,
+        false
+      );
+
     end
   );
 end;
