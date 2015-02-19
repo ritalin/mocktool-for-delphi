@@ -11,7 +11,9 @@ type
   public
     [Test] procedure _Create_Object_Mock;
     [Test] procedure _Create_Object_Mock_unarranged;
+    [Test] procedure _Create_Object_Mock_With_Args;
     [Test] procedure _Create_Interface_Mock;
+    [Test] procedure _Create_Interface_Mock_With_Args;
     [Test] procedure _Create_Interface_Mock_Multi_Intf;
     [Test] procedure _Create_NestedInterface_Mock;
     [Test] procedure _Create_NestedInterface_Mock_with_dependency;
@@ -70,9 +72,15 @@ type
   public
     function Text: string;
     function Value: integer; virtual; abstract;
+    function SomeFunc(const n: integer): string; virtual;
   end;
 
 { TAbstractTarget }
+
+function TAbstractTarget.SomeFunc(const n: integer): string;
+begin
+  Result := n.ToString();
+end;
 
 function TAbstractTarget.Text: string;
 begin
@@ -93,6 +101,35 @@ begin
     end
   )
   .Should(BeThrowenException(EAbstractError));
+end;
+
+procedure _Mock_Test._Create_Object_Mock_With_Args;
+var
+  mock: TMock<TAbstractTarget>;
+begin
+  mock := TMock.Create<TAbstractTarget>;
+  mock.Setup.WillReturn('qwerty').Expect(Once).When.SomeFunc(1);
+  mock.Setup.WillReturn('1234567890').Expect(Once).When.SomeFunc(2);
+
+  Its('mock.verify[0]').Call(
+    procedure
+    begin
+      mock.VerifyAll;
+    end
+  )
+  .Should(BeThrowenException(ETestFailure));
+
+  Its('SomeFunc(1) [1]').Val(mock.Instance.SomeFunc(1)).Should(BeEqualTo('qwerty'));
+  Its('SomeFunc(2) [1]').Val(mock.Instance.SomeFunc(2)).Should(BeEqualTo('1234567890'));
+  Its('SomeFunc(3) [1]').Val(mock.Instance.SomeFunc(3)).Should(BeEqualTo('3'));
+
+  Its('mock.verify[1]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+  Its('SomeFunc(1) [2]').Val(mock.Instance.SomeFunc(1)).Should(BeEqualTo('qwerty'));
+  Its('SomeFunc(2) [2]').Val(mock.Instance.SomeFunc(2)).Should(BeEqualTo('1234567890'));
+  Its('SomeFunc(3) [2]').Val(mock.Instance.SomeFunc(3)).Should(BeEqualTo('3'));
+
+  Its('mock.verify[2]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 end;
 
 procedure _Mock_Test._Create_Interface_Mock;
@@ -125,6 +162,41 @@ begin
   Its('count[3]').Val(mock.Instance.CallCount).Should(BeEqualTo(64));
 
   Its('mock.verify[3]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+end;
+
+procedure _Mock_Test._Create_Interface_Mock_With_Args;
+var
+  mock: TMock<ICounter>;
+begin
+  mock := TMock.Implements<ICounter>;
+  mock.Setup.WillReturn('qwerty').Expect(Once).When.SomeFunc(1, 'a');
+  mock.Setup.WillReturn('1234567890').Expect(Once).When.SomeFunc(2, 'a');
+
+  Its('mock.verify[0]').Call(
+    procedure
+    begin
+      mock.VerifyAll;
+    end
+  )
+  .Should(BeThrowenException(ETestFailure));
+
+  Its('SomeFunc(1, a) [1]').Val(mock.Instance.SomeFunc(1, 'a')).Should(BeEqualTo('qwerty'));
+  Its('SomeFunc(2, a) [1]').Val(mock.Instance.SomeFunc(2, 'a')).Should(BeEqualTo('1234567890'));
+
+  Its('mock.verify[1]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+  Its('SomeFunc(1, a) [2]').Val(mock.Instance.SomeFunc(1, 'a')).Should(BeEqualTo('qwerty'));
+  Its('SomeFunc(2, a) [2]').Val(mock.Instance.SomeFunc(2, 'a')).Should(BeEqualTo('1234567890'));
+
+  Its('mock.verify[2]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+  Its('SomeFunc(3, a) [3]').Call(
+    procedure
+    begin
+      mock.Instance.SomeFunc(3, 'a');
+    end
+  )
+  .Should(BeThrowenException(EAssertionFailed, 'Method (ICounter.SomeFunc) is not arranged.'));
 end;
 
 procedure _Mock_Test._Create_Interface_Mock_Multi_Intf;

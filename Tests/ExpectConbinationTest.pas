@@ -2,6 +2,7 @@ unit ExpectConbinationTest;
 
 interface
 uses
+  System.Rtti,
   DUnitX.TestFramework;
 
 type
@@ -41,7 +42,7 @@ begin
   ;
   mock
     .Stub.WillExecute(
-      procedure
+      procedure (args: TArray<TValue>)
       begin
       end
     )
@@ -93,7 +94,7 @@ begin
   ;
   mock
     .Setup.WillExecute(
-      procedure
+      procedure (args: TArray<TValue>)
       begin
       end
     )
@@ -164,7 +165,7 @@ begin
   ;
   mock
     .Setup.WillExecute(
-      procedure
+      procedure (args: TArray<TValue>)
       begin
       end
     )
@@ -198,7 +199,7 @@ begin
   ;
   mock
     .Setup.WillExecute(
-      procedure
+      procedure (args: TArray<TValue>)
       begin
       end
     )
@@ -233,7 +234,7 @@ begin
   ;
   mock
     .Stub.WillExecute(
-      procedure
+      procedure (args: TArray<TValue>)
       begin
       end
     )
@@ -267,7 +268,7 @@ begin
   ;
   mock
     .Setup.WillExecute(
-      procedure
+      procedure (args: TArray<TValue>)
       begin
       end
     )
@@ -331,7 +332,7 @@ begin
   ;
   mock
     .Stub.WillExecute(
-      procedure
+      procedure (args: TArray<TValue>)
       begin
       end
     )

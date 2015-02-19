@@ -161,6 +161,8 @@ type
     FInstance: TValue;
     FOnCallback: TInterceptBeforeNotify;
   private
+    constructor Create(const instance: TValue; const classType: TClass); overload;
+  private
     function CreateInstance(const t: TRttiType): TValue;
     procedure NotifyMethodCalled(Instance: TObject;
       Method: TRttiMethod; const Args: TArray<TValue>; out DoInvoke: Boolean;
@@ -178,7 +180,8 @@ type
     function IsProxifying: boolean;
     function QueryProxy(const iid: TGuid; out outResult): HResult;
   public
-    constructor Create;
+    constructor Create; overload;
+    constructor Create(const instance: TObject); overload;
     destructor Destroy; override;
   end;
 
@@ -657,7 +660,7 @@ begin
   try
     for action in Self.GetActions do begin
       if action.Method <> Method then Continue;
-      if not IsSameArgs(ctx, args, action.Args, action.Method.IsStatic) then Continue;
+      if not IsSameArgs(ctx, args, action.Args, true) then Continue;
 
       outResult := action;
       Exit(true);
@@ -690,14 +693,26 @@ begin
   ctx := TRttiContext.Create;
   try
     tt := ctx.GetType(System.TypeInfo(T));
-    FInstance := Self.CreateInstance(tt);
 
-    FVmi := TVirtualMethodInterceptor.Create(tt.AsInstance.MetaclassType);
-    FVmi.Proxify(FInstance.AsObject);
-    FVmi.OnBefore := Self.NotifyMethodCalled;
+    Create(Self.CreateInstance(tt), tt.AsInstance.MetaclassType);
   finally
     ctx.Free;
   end;
+end;
+
+constructor TObjectRecordProxy<T>.Create(const instance: TObject);
+begin
+  Create(instance, instance.ClassType);
+end;
+
+constructor TObjectRecordProxy<T>.Create(const instance: TValue;
+  const classType: TClass);
+begin
+  FInstance := instance;
+
+  FVmi := TVirtualMethodInterceptor.Create(classType);
+  FVmi.Proxify(FInstance.AsObject);
+  FVmi.OnBefore := Self.NotifyMethodCalled;
 end;
 
 destructor TObjectRecordProxy<T>.Destroy;
@@ -975,11 +990,13 @@ begin
       const Args: TArray<TValue>; out Result: TValue)
     var
       doInvoke: boolean;
+      shiftedArgs: TArray<TValue>;
     begin
       Assert(Assigned(FOnCallback));
 
       doInvoke := false;
-      FOnCallback(Self, Method, Args, doInvoke, Result);
+      shiftedArgs := Copy(Args, Low(Args)+1, Integer.MaxValue);
+      FOnCallback(Self, Method, shiftedArgs, doInvoke, Result);
     end
   );
 end;

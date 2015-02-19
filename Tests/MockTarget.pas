@@ -17,6 +17,7 @@ type
     ['{84A318BD-84DA-4183-B55D-6878976C28F3}']
     procedure CountUp;
     function CallCount: integer;
+    function SomeFunc(const n: integer; const s: string): string;
   end;
   {$M-}
 
@@ -27,7 +28,11 @@ type
   public
     procedure CountUp; virtual;
     function CallCount: integer; virtual;
-    function SomeFunc(const n: integer; const s: string): string;
+    function SomeFunc(const n: integer; const s: string): string; virtual;
+    function NoneVirtualFunc(const n: integer): string;
+  public
+    constructor Create; overload;
+    constructor Create(const count: integer); overload;
   end;
 
   {$M+}
@@ -63,6 +68,21 @@ end;
 procedure TCounterObject.CountUp;
 begin
   Inc(FCount);
+end;
+
+constructor TCounterObject.Create;
+begin
+  FCount := 0;
+end;
+
+constructor TCounterObject.Create(const count: integer);
+begin
+  FCount := count;
+end;
+
+function TCounterObject.NoneVirtualFunc(const n: integer): string;
+begin
+  Result := n.ToString();
 end;
 
 function TCounterObject.SomeFunc(const n: integer; const s: string): string;

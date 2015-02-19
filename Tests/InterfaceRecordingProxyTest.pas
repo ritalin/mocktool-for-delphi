@@ -127,6 +127,7 @@ var
   setup: IMockSetup<ICounter>;
   invoker: TMockAction;
   role1, role2: IMockRole;
+  args: TArray<TValue>;
   val: TValue;
 begin
   proxy := TInterfaceRecordProxy<ICounter>.Create(ICounter, TypeInfo(ICounter), []);
@@ -156,19 +157,19 @@ begin
   invoker := storage.Actions[0];
 
   Its('Actions[0]:name').Val(invoker.Method.Name).Should(BeEqualTo('CallCount'));
-  Its('Actions[0]:args:length').Val(Length(invoker.Args)).Should(BeEqualTo(1));  // the receiver is counted
+  Its('Actions[0]:args:length').Val(Length(invoker.Args)).Should(BeEqualTo(0));
   Its('Actions[0]:roles:length').Val(Length(invoker.Roles)).Should(BeEqualTo(2));
 
   role1 := invoker.Roles[0];
 
   Its('Actions[0]:role[0]:verify[0]').Val(role1.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-  role1.DoInvoke(invoker.Method, val);
+  role1.DoInvoke(invoker.Method, args, val);
 
   Its('Actions[0]:role[0]:result[1]').val(val).Should(BeEqualTo(108));
   Its('Actions[0]:role[0]:verify[1]').Val(role1.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-  role1.DoInvoke(invoker.Method, val);
+  role1.DoInvoke(invoker.Method, args, val);
 
   Its('Actions[0]:role[0]:result[2]').val(val).Should(BeEqualTo(108));
   Its('Actions[0]:role[0]:verify[2]').Val(role1.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
@@ -177,11 +178,11 @@ begin
 
   Its('Actions[0]:role[1]:verify[0]').Val(role2.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-  role2.DoInvoke(invoker.Method, val);
+  role2.DoInvoke(invoker.Method, args, val);
 
   Its('Actions[0]:role[1]:verify[1]').Val(role2.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-  role2.DoInvoke(invoker.Method, val);
+  role2.DoInvoke(invoker.Method, args, val);
 
   Its('Actions[0]:role[1]:verify[2]').Val(role2.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 end;

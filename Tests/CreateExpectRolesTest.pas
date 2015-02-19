@@ -90,6 +90,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -108,15 +109,15 @@ begin
 
       Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
@@ -130,6 +131,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -148,15 +150,15 @@ begin
 
       Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
@@ -170,6 +172,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -188,15 +191,15 @@ begin
 
       Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
@@ -210,6 +213,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -228,15 +232,15 @@ begin
 
       Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
@@ -250,6 +254,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -268,15 +273,15 @@ begin
 
       Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
@@ -290,6 +295,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -308,15 +314,15 @@ begin
 
       Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
@@ -330,6 +336,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -348,19 +355,19 @@ begin
 
       Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[4]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
@@ -423,6 +430,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -441,7 +449,7 @@ begin
 
       Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
@@ -455,6 +463,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -475,7 +484,7 @@ begin
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
@@ -489,6 +498,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -510,7 +520,7 @@ begin
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
@@ -524,6 +534,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -546,7 +557,7 @@ begin
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
@@ -560,6 +571,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -581,14 +593,14 @@ begin
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('SetupOnce'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
@@ -602,6 +614,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -620,7 +633,7 @@ begin
 
       Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
@@ -634,6 +647,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -656,19 +670,19 @@ begin
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
@@ -682,6 +696,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -704,21 +719,21 @@ begin
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
@@ -732,6 +747,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -756,7 +772,7 @@ begin
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
@@ -770,6 +786,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -792,21 +809,21 @@ begin
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
     end
@@ -820,6 +837,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -838,13 +856,13 @@ begin
 
       Its('Roles[0]:verify[0]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
@@ -858,6 +876,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -878,7 +897,7 @@ begin
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
@@ -892,6 +911,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -912,7 +932,7 @@ begin
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       strage.Callstacks.Add(FindMethodByName('TearDown'));
       strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
@@ -931,6 +951,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -951,7 +972,7 @@ begin
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       strage.Callstacks.Add(FindMethodByName('TearDown'));
       strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
@@ -960,7 +981,7 @@ begin
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       strage.Callstacks.Add(FindMethodByName('TearDown'));
       strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
@@ -984,6 +1005,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -1006,7 +1028,7 @@ begin
       strage.Callstacks.Add(FindMethodByName('SetUp'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       strage.Callstacks.Add(FindMethodByName('TearDown'));
       strage.Callstacks.Add(FindMethodByName('TearDownOnce'));
@@ -1023,6 +1045,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -1045,7 +1068,7 @@ begin
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
@@ -1059,6 +1082,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -1081,19 +1105,19 @@ begin
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[2]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[3]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
     end
@@ -1107,6 +1131,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -1129,7 +1154,7 @@ begin
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
@@ -1150,6 +1175,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -1172,7 +1198,7 @@ begin
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
@@ -1182,7 +1208,7 @@ begin
 
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       strage.Callstacks.Add(FindMethodByName('TearDown'));
 
@@ -1198,6 +1224,7 @@ begin
     var
       role: IMockRole;
       invoker: TMockAction;
+      args: TArray<TValue>;
       val: TValue;
     begin
       mock
@@ -1220,7 +1247,7 @@ begin
       strage.Callstacks.Add(FindMethodByName('Setup'));
       strage.Callstacks.Add(FindMethodByName('Execute'));
 
-      role.DoInvoke(invoker.Method, val);
+      role.DoInvoke(invoker.Method, args, val);
 
       Its('Roles[0]:verify[1]:status').Val(role.Verify(invoker).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 

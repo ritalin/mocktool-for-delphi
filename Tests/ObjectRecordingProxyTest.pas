@@ -10,6 +10,7 @@ type
   _RecordProxy_Test = class(TObject)
   public
     [Test] procedure _Create_Object_Record_Proxy;
+    [Test] procedure _Create_Object_Record_Proxy_Using_Instance;
     [Test] procedure _Create_Builder;
   end;
 
@@ -68,15 +69,24 @@ begin
   end;
 end;
 
+procedure _RecordProxy_Test._Create_Object_Record_Proxy_Using_Instance;
+var
+  proxy: IProxy<TCounterObject>;
+begin
+  proxy := TObjectRecordProxy<TCounterObject>.Create(TCounterObject.Create(108));
+
+  Its('CallCount').Val(proxy.Subject.CallCount).Should(not BeEqualTo(108));
+end;
+
 type
   TDummyRole = class(TInterfacedObject, IMockRole)
-    procedure DoInvoke(const method: TRttiMEthod; var outResult: TValue);
+    procedure DoInvoke(const methodName: TRttiMethod; const args: TArray<TValue>; var outResult: TValue);
     function Verify(invoker: TMockAction): TVerifyResult;
   end;
 
 { TDummyRole }
 
-procedure TDummyRole.DoInvoke(const method: TRttiMEthod; var outResult: TValue);
+procedure TDummyRole.DoInvoke(const methodName: TRttiMethod; const args: TArray<TValue>; var outResult: TValue);
 begin
 
 end;
@@ -99,7 +109,7 @@ begin
     proxy, TMockSessionRecorder.Create
   );
 
-  // ロールの追加を行わせたくないため、レコーディングフックを差し替える
+  // Switch recording hook because of pproventing append of roles.
   proxy.BeginProxify(ProxyFook);
 
   Its('Now Recording[1]').Val(proxy.Proxifying).Should(BeTrue);
