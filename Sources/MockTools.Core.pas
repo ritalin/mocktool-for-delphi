@@ -3,7 +3,7 @@ unit MockTools.Core;
 interface
 
 uses
-  System.SysUtils, System.Rtti, System.TypInfo, System.Generics.Collections,
+  System.SysUtils, System.Rtti, System.TypInfo, System.Generics.Collections, System.Generics.Defaults,
   MockTools.Mocks, MockTools.Core.Types
 ;
 
@@ -250,6 +250,7 @@ function HasRtti(info: PTypeInfo): boolean;
 implementation
 
 uses
+  System.Math,
   System.SyncObjs, MockTools.FormatHelper
 ;
 
@@ -488,25 +489,181 @@ begin
   FActions.Add(invoker);
 end;
 
-function TMockSessionRecorder.TryFindAction(const method: TRttiMethod;
-  const args: TArray<TValue>; out outResult: TMockAction): boolean;
-
-  function IsSameArgs(const rhs: TArray<TValue>): boolean;
-  begin
-    if Length(Args) <> Length(rhs) then Exit(false);
-
-    Result := true;
+type
+  TArgComparer = record
+  private
+    class function IsNumeric(value: TValue): boolean; static;
+  public
+    class function IsSameArgValue(const ctx: TRttiContext; value1, value2: TValue): boolean; static;
+    class function IsSameNumeric(const ctx: TRttiContext; value1, value2: TValue): boolean; static;
+    class function IsSameObject(const ctx: TRttiContext; value1, value2: TValue): boolean; static;
+    class function IsSameInterface(const ctx: TRttiContext; value1, value2: TValue): boolean; static;
+    class function IsSameRecord(const ctx: TRttiContext; value1, value2: TValue): boolean; static;
+    class function IsSameArray(const ctx: TRttiContext; value1, value2: TValue): boolean; static;
   end;
 
+class function TArgComparer.IsSameObject(const ctx: TRttiContext; value1, value2: TValue): boolean;
+begin
+  if not (value1.IsEmpty xor value2.IsEmpty) then begin
+    Exit(false);
+  end
+  else if value1.IsEmpty and value2.IsEmpty then begin
+    Exit(true);
+  end
+  else begin
+    Result := value1.AsObject.Equals(value2.AsObject);
+  end;
+end;
+
+class function TArgComparer.IsSameInterface(const ctx: TRttiContext; value1, value2: TValue): boolean;
+var
+  t: TRttiType;
+  prop: TRttiProperty;
+  same: boolean;
+begin
+  if not (value1.IsEmpty xor value2.IsEmpty) then begin
+    Exit(false);
+  end
+  else if value1.IsEmpty and value2.IsEmpty then begin
+    Exit(true);
+  end
+  else begin
+    t := ctx.GetType(value1.TypeInfo);
+    for prop in t.GetProperties do begin
+      same := IsSameArgValue(
+        ctx,
+        prop.GetValue(value1.GetReferenceToRawData),
+        prop.GetValue(value2.GetReferenceToRawData)
+      );
+
+      if not same then begin
+        Exit(false);
+      end;
+    end;
+
+    Exit(true);
+  end;
+end;
+
+class function TArgComparer.IsSameRecord(const ctx: TRttiContext; value1, value2: TValue): boolean;
+var
+  t: TRttiType;
+  f: TRttiField;
+  same: boolean;
+begin
+  t := ctx.GetType(value1.TypeInfo);
+  for f in t.GetFields do begin
+    same := IsSameArgValue(
+      ctx,
+      f.GetValue(value1.GetReferenceToRawData),
+      f.GetValue(value2.GetReferenceToRawData)
+    );
+    if not same then Exit(false);
+  end;
+
+  Exit(true);
+end;
+
+class function TArgComparer.IsSameArray(const ctx: TRttiContext; value1, value2: TValue): boolean;
+var
+  i: integer;
+  same: boolean;
+begin
+  if value1.GetArrayLength <> value2.GetArrayLength then Exit(false);
+
+  for i := 0 to value1.GetArrayLength-1 do begin
+    same := IsSameArgValue(
+      ctx,
+      value1.GetArrayElement(i),
+      value2.GetArrayElement(i)
+    );
+    if not same then Exit(false);
+  end;
+
+  Exit(true);
+end;
+
+class function TArgComparer.IsNumeric(value: TValue): boolean;
+begin
+  Result := value.TypeInfo.Kind in [
+    tkInteger, tkChar, tkEnumeration, tkFloat, tkSet, tkWChar, tkInt64
+  ];
+end;
+
+class function TArgComparer.IsSameNumeric(const ctx: TRttiContext; value1, value2: TValue): boolean;
+
+  function AsNumber(value: TValue): extended;
+  begin
+    if value.IsOrdinal then begin
+      Result := value.AsOrdinal;
+    end
+    else if value.TypeInfo.Kind = TTypeKind.tkFloat then begin
+      Result := value.AsType<Extended>;
+    end;
+  end;
+
+begin
+  Result := System.Math.SameValue(AsNumber(value1), AsNumber(value2));
+end;
+
+class function TArgComparer.IsSameArgValue(const ctx: TRttiContext; value1, value2: TValue): boolean;
+begin
+  if value1.TypeInfo = value2.TypeInfo then begin
+    case value1.Kind of
+      TTypeKind.tkRecord: begin
+        Exit(TArgComparer.IsSameRecord(ctx, value1, value2));
+      end;
+      TTypeKind.tkArray, TTypeKind.tkDynArray: begin
+        Exit(TArgComparer.IsSameArray(ctx, value1, value2));
+      end;
+      TTypeKind.tkClass: begin
+        Exit(TArgComparer.IsSameObject(ctx, value1, value2));
+      end;
+      TTypeKind.tkInterface: begin
+        Exit(TArgComparer.IsSameInterface(ctx, value1, value2));
+      end;
+    end;
+  end;
+
+  if IsNumeric(value1) and IsNumeric(value2) then begin
+    Exit(TArgComparer.IsSameNumeric(ctx, value1, value2));
+  end;
+
+  Result := TEqualityComparer<string>.Default.Equals(value1.ToString, value2.ToString);
+end;
+
+function IsSameArgs(const ctx: TRttiContext; const lhs, rhs: TArray<TValue>; const isStaticMethod: boolean): boolean;
+var
+  i, fromIndex: integer;
+begin
+  if Length(lhs) <> Length(rhs) then Exit(false);
+
+  fromIndex := Low(lhs);
+  if not isStaticMethod then Inc(fromIndex);
+
+  for i := fromIndex to High(lhs) do begin
+    if not TArgComparer.IsSameArgValue(ctx, lhs[i], rhs[i]) then Exit(false);
+  end;
+  Result := true;
+end;
+
+function TMockSessionRecorder.TryFindAction(const method: TRttiMethod;
+  const args: TArray<TValue>; out outResult: TMockAction): boolean;
 var
   action: TMockAction;
+  ctx: TRttiContext;
 begin
-  for action in Self.GetActions do begin
-    if action.Method <> Method then Continue;
-    if not IsSameArgs(action.Args) then Continue;
+  ctx := TRttiContext.Create;
+  try
+    for action in Self.GetActions do begin
+      if action.Method <> Method then Continue;
+      if not IsSameArgs(ctx, args, action.Args, action.Method.IsStatic) then Continue;
 
-    outResult := action;
-    Exit(true);
+      outResult := action;
+      Exit(true);
+    end;
+  finally
+    ctx.Free;
   end;
 
   Result := false;
