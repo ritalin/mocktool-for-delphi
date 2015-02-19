@@ -27,7 +27,7 @@ procedure ProxyFook(Instance: TObject;
       Method: TRttiMethod; const Args: TArray<TValue>; out DoInvoke: Boolean;
       out Result: TValue);
 begin
-  DoInvoke := false;
+  DoInvoke := true;
 end;
 
 { _RecordProxy_Test }
@@ -50,20 +50,23 @@ begin
   begin
     obj := proxy.Subject;
     try
-      count := obj.CallCount;
+      obj.CountUp;
+      obj.CountUp;
+
+      Its('CallCount').Val(obj.CallCount).Should(BeEqualTo(2));
     finally
       obj.Free;
     end;
   end;
   proxy.EndProxify;
 
-  obj := TCounterObject.Create;
+  obj := TCounterObject.Create(99);
   try
     obj.CountUp;
     obj.CountUp;
     obj.CountUp;
 
-    count := obj.CallCount;
+    Its('CallCount').Val(obj.CallCount).Should(BeEqualTo(102));
   finally
     obj.Free;
   end;
@@ -74,8 +77,9 @@ var
   proxy: IProxy<TCounterObject>;
 begin
   proxy := TObjectRecordProxy<TCounterObject>.Create(TCounterObject.Create(108));
+  proxy.BeginProxify(ProxyFook);
 
-  Its('CallCount').Val(proxy.Subject.CallCount).Should(not BeEqualTo(108));
+  Its('CallCount').Val(proxy.Subject.CallCount).Should(BeEqualTo(108));
 end;
 
 type

@@ -12,6 +12,7 @@ type
     [Test] procedure _Create_Object_Mock;
     [Test] procedure _Create_Object_Mock_unarranged;
     [Test] procedure _Create_Object_Mock_With_Args;
+    [Test] procedure _Create_Object_Mock_From_Instance;
     [Test] procedure _Create_Interface_Mock;
     [Test] procedure _Create_Interface_Mock_With_Args;
     [Test] procedure _Create_Interface_Mock_Multi_Intf;
@@ -74,6 +75,13 @@ type
     function Value: integer; virtual; abstract;
     function SomeFunc(const n: integer): string; virtual;
   end;
+  TConcreteTarget = class(TAbstractTarget)
+  private
+    FValue: integer;
+  public
+    constructor Create(const n: integer);
+    function Value: integer; override;
+  end;
 
 { TAbstractTarget }
 
@@ -85,6 +93,18 @@ end;
 function TAbstractTarget.Text: string;
 begin
   Result := 'xyz';
+end;
+
+{ TConcreteTarget }
+
+constructor TConcreteTarget.Create(const n: integer);
+begin
+  FValue := n;
+end;
+
+function TConcreteTarget.Value: integer;
+begin
+  Result := FValue;
 end;
 
 procedure _Mock_Test._Create_Object_Mock_unarranged;
@@ -130,6 +150,17 @@ begin
   Its('SomeFunc(3) [2]').Val(mock.Instance.SomeFunc(3)).Should(BeEqualTo('3'));
 
   Its('mock.verify[2]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+end;
+
+procedure _Mock_Test._Create_Object_Mock_From_Instance;
+var
+  mock: TMock<TAbstractTarget>;
+begin
+  mock := TMock.Create<TAbstractTarget>(TConcreteTarget.Create(987));
+
+  Its('SomeFunc(1) [1]').Val(mock.Instance.Value).Should(BeEqualTo(987));
+
+  mock.VerifyAll;
 end;
 
 procedure _Mock_Test._Create_Interface_Mock;

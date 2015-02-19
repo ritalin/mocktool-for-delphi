@@ -42,7 +42,8 @@ type
   private
     class function ExtractGuid(info: PTypeInfo): TGUID; static;
   public
-    class function Create<T: class>: TMock<T>; static;
+    class function Create<T: class>: TMock<T>; overload; static;
+    class function Create<T: class>(const instance: T): TMock<T>; overload; static;
     class function Implements<T: IInterface>: TMock<T>; overload; static;
     class function Implements<T: IInterface>(const withInterfaces: array of TGUID): TMock<T>; overload; static;
   end;
@@ -190,6 +191,14 @@ begin
   Result.FSession := TMockSessionRecorder.Create;
   Result.FRecordProxy := TObjectRecordProxy<T>.Create;
   Result.FVirtualProxy := TVirtualProxy<T>.Create(TObjectRecordProxy<T>.Create, Result.FSession);
+end;
+
+class function TMock.Create<T>(const instance: T): TMock<T>;
+begin
+  Result.FDependencies := TList<TFunc<boolean, TVerifyResult>>.Create;
+  Result.FSession := TMockSessionRecorder.Create;
+  Result.FRecordProxy := TObjectRecordProxy<T>.Create;
+  Result.FVirtualProxy := TVirtualProxy<T>.Create(TObjectRecordProxy<T>.Create(instance), Result.FSession);
 end;
 
 class function TMock.ExtractGuid(info: PTypeInfo): TGUID;
