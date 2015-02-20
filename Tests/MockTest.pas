@@ -13,9 +13,13 @@ type
     [Test] procedure _Create_Object_Mock_unarranged;
     [Test] procedure _Create_Object_Mock_With_Args;
     [Test] procedure _Create_Object_Mock_From_Instance;
+    [Test] procedure _Create_Object_Mock_cast_as_another_Mock;
+
     [Test] procedure _Create_Interface_Mock;
     [Test] procedure _Create_Interface_Mock_With_Args;
     [Test] procedure _Create_Interface_Mock_Multi_Intf;
+    [Test] procedure _Create_Interface_Mock_cast_as_another_Mock;
+
     [Test] procedure _Create_NestedInterface_Mock;
     [Test] procedure _Create_NestedInterface_Mock_with_dependency;
     [Test] procedure _Create_Method_Expection_only;
@@ -69,15 +73,18 @@ begin
 end;
 
 type
-  TAbstractTarget = class
+  TAbstractTarget = class(TInterfacedObject)
   public
     function Text: string;
     function Value: integer; virtual; abstract;
     function SomeFunc(const n: integer): string; virtual;
   end;
-  TConcreteTarget = class(TAbstractTarget)
+  TConcreteTarget = class(TAbstractTarget, IShowing)
   private
     FValue: integer;
+  protected
+    { IShowing }
+    function ToString: string;
   public
     constructor Create(const n: integer);
     function Value: integer; override;
@@ -100,6 +107,11 @@ end;
 constructor TConcreteTarget.Create(const n: integer);
 begin
   FValue := n;
+end;
+
+function TConcreteTarget.ToString: string;
+begin
+  Result := Self.Text;
 end;
 
 function TConcreteTarget.Value: integer;
@@ -161,6 +173,20 @@ begin
   Its('SomeFunc(1) [1]').Val(mock.Instance.Value).Should(BeEqualTo(987));
 
   mock.VerifyAll;
+end;
+
+procedure _Mock_Test._Create_Object_Mock_cast_as_another_Mock;
+var
+  mock: TMock<TConcreteTarget>;
+  intfMock: TMock<IShowing>;
+begin
+  mock := TMock.Create<TConcreteTarget>(TConcreteTarget.Create(987));
+
+  Its('SomeFunc(1) [1]').Val(mock.Instance.Value).Should(BeEqualTo(987));
+
+  intfMock := mock.AsType<IShowing>;
+
+  Its('ToString [1]').Val(mock.Instance.ToString).Should(BeEqualTo('xyz'));
 end;
 
 procedure _Mock_Test._Create_Interface_Mock;
@@ -242,17 +268,52 @@ begin
 
   Its('mock.verify[0]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-  Its('count[1]').Val(mock.Instance.CallCount).Should(BeEqualTo(4096));
+  Its('Count[1]').Val(mock.Instance.CallCount).Should(BeEqualTo(4096));
 
   Its('mock.verify[1]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 
-  Its('content[1]').Val(mock.Instance<IShowing>.ToString).Should(BeEqualTo('FizzBazz'));
+  Its('ToString[1]').Val(mock.Instance<IShowing>.ToString).Should(BeEqualTo('FizzBazz'));
 
   Its('mock.verify[2]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
 
-  Its('content[2]').Val(mock.Instance<IShowing>.ToString).Should(BeEqualTo('FizzBazz'));
+  Its('ToString[2]').Val(mock.Instance<IShowing>.ToString).Should(BeEqualTo('FizzBazz'));
 
   Its('mock.verify[3]').Val(mock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+end;
+
+procedure _Mock_Test._Create_Interface_Mock_cast_as_another_Mock;
+var
+  counterMock: TMock<ICounter>;
+  showingMock: TMock<IShowing>;
+begin
+  counterMock := TMock.Implements<ICounter>([IShowing]);
+  counterMock.Setup.WillReturn(4096).Expect(Once).When.CallCount;
+
+  showingMock := counterMock.AsType<IShowing>;
+  showingMock.Setup.WillReturn('FizzBazz').When.ToString;
+
+  Its('mock.verify[0-a]').Val(counterMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+  Its('mock.verify[0-b]').Val(showingMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+  Its('Count[1]').Val(counterMock.Instance.CallCount).Should(BeEqualTo(4096));
+
+  Its('mock.verify[1-a]').Val(counterMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+  Its('mock.verify[1-b]').Val(showingMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+
+  Its('ToString[1]').Val(showingMock.Instance<IShowing>.ToString).Should(BeEqualTo('FizzBazz'));
+
+  Its('mock.verify[2-a]').Val(counterMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+  Its('mock.verify[2-b]').Val(showingMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+  Its('ToString[2]').Val(showingMock.Instance<IShowing>.ToString).Should(BeEqualTo('FizzBazz'));
+
+  Its('mock.verify[3-a]').Val(counterMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+  Its('mock.verify[3-b]').Val(showingMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Passed.AsTValue));
+
+  Its('Count[2]').Val(counterMock.Instance.CallCount).Should(BeEqualTo(4096));
+
+  Its('mock.verify[4-a]').Val(counterMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
+  Its('mock.verify[4-b]').Val(showingMock.VerifyAll(true).Status).Should(BeEqualTo(TVerifyResult.TStatus.Failed.AsTValue));
 end;
 
 procedure _Mock_Test._Create_Method_Expection_only;

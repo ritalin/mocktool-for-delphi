@@ -215,7 +215,7 @@ type
     destructor Destroy; override;
   end;
 
-  TTypeBridgeProxy<TFrom; TTo: IInterface> = class(TInterfacedObject, IProxy<TTo>, IInterface)
+  TTypeProxyBridge<TFrom; TTo: IInterface> = class(TInterfacedObject, IProxy<TTo>, IInterface)
   private
     FProxy: IProxy<TFrom>;
   protected
@@ -246,6 +246,20 @@ type
     property Proxy: IReadOnlyProxy<T> read FProxy implements IReadOnlyProxy<T>;
   public
     constructor Create(const proxy: IProxy<T>; const session: IMockSession);
+  end;
+
+  TTypeReadOnlyProxyBridge<TFrom; TTo: IInterface> = class(TInterfacedObject, IReadOnlyProxy<TTo>, IInterface)
+  private
+    FProxy: IReadOnlyProxy<TFrom>;
+  protected
+    { IReadOnlyProxy<T> }
+    function GetSubject: TTo;
+    function TryGetSubject(const info: PTypeInfo; out outResult): boolean;
+  public
+    { IInterface }
+    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+  public
+    constructor Create(const proxy: IReadOnlyProxy<TFrom>);
   end;
 
 function HasRtti(info: PTypeInfo): boolean;
@@ -760,8 +774,16 @@ end;
 
 function TObjectRecordProxy<T>.QueryProxy(const iid: TGuid;
   out outResult): HResult;
+var
+  intf: IInterface;
 begin
-  Result := E_NOINTERFACE;
+  if not Supports(FInstance.AsObject, iid, intf) then begin
+    Result := E_NOINTERFACE;
+  end
+  else begin
+    IProxy<IInterface>(outResult) := TTypeProxyBridge<T, IInterface>.Create(Self);
+    Result := S_OK;
+  end;
 end;
 
 function TObjectRecordProxy<T>.TryGetSubject(const info: PTypeInfo;
@@ -1169,46 +1191,71 @@ end;
 
 { TTypeBridgeProxy<TFrom, TTo> }
 
-constructor TTypeBridgeProxy<TFrom, TTo>.Create(const proxy: IProxy<TFrom>);
+constructor TTypeProxyBridge<TFrom, TTo>.Create(const proxy: IProxy<TFrom>);
 begin
   FProxy := proxy;
 end;
 
-procedure TTypeBridgeProxy<TFrom, TTo>.BeginProxify(
+procedure TTypeProxyBridge<TFrom, TTo>.BeginProxify(
   const callback: TInterceptBeforeNotify);
 begin
   FProxy.BeginProxify(callback);
 end;
 
-procedure TTypeBridgeProxy<TFrom, TTo>.EndProxify;
+procedure TTypeProxyBridge<TFrom, TTo>.EndProxify;
 begin
   FProxy.EndProxify;
 end;
 
-function TTypeBridgeProxy<TFrom, TTo>.GetSubject: TTo;
+function TTypeProxyBridge<TFrom, TTo>.GetSubject: TTo;
 begin
   Assert(Self.TryGetSubject(TypeInfo(TTo), Result));
 end;
 
-function TTypeBridgeProxy<TFrom, TTo>.IsProxifying: boolean;
+function TTypeProxyBridge<TFrom, TTo>.IsProxifying: boolean;
 begin
   Result := FProxy.IsProxifying;
 end;
 
-function TTypeBridgeProxy<TFrom, TTo>.QueryInterface(const IID: TGUID;
+function TTypeProxyBridge<TFrom, TTo>.QueryInterface(const IID: TGUID;
   out Obj): HResult;
 begin
   Result := FProxy.QueryInterface(IID, Obj);
 end;
 
-function TTypeBridgeProxy<TFrom, TTo>.QueryProxy(const IID: TGuid;
+function TTypeProxyBridge<TFrom, TTo>.QueryProxy(const IID: TGuid;
   out outResult): HResult;
 begin
   Result := FProxy.QueryProxy(IID, outResult);
 end;
 
-function TTypeBridgeProxy<TFrom, TTo>.TryGetSubject(const info: PTypeInfo;
+function TTypeProxyBridge<TFrom, TTo>.TryGetSubject(const info: PTypeInfo;
   out outResult): boolean;
+begin
+  Result := FProxy.TryGetSubject(info, outResult);
+end;
+
+{ TTypeReadOnlyProxyBridge<TFrom, TTo> }
+
+constructor TTypeReadOnlyProxyBridge<TFrom, TTo>.Create(
+  const proxy: IReadOnlyProxy<TFrom>);
+begin
+  FProxy := proxy;
+end;
+
+function TTypeReadOnlyProxyBridge<TFrom, TTo>.GetSubject: TTo;
+begin
+  Assert(Self.TryGetSubject(TypeInfo(TTo), Result));
+end;
+
+function TTypeReadOnlyProxyBridge<TFrom, TTo>.QueryInterface(const IID: TGUID;
+  out Obj): HResult;
+begin
+  Result := FProxy.QueryInterface(IID, Obj);
+end;
+
+function TTypeReadOnlyProxyBridge<TFrom, TTo>.TryGetSubject(
+  const info: PTypeInfo; out outResult): boolean;
 begin
   Result := FProxy.TryGetSubject(info, outResult);
 end;

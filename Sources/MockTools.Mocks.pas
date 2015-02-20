@@ -15,8 +15,17 @@ type
     FVirtualProxy: IReadOnlyProxy<T>;
     FDependencies: TList<TFunc<boolean, TVerifyResult>>;
   private
-    function BridgeProxy<U: IInterface>(const fromType, toType: PTypeInfo): IProxy<U>;
+    function BridgeRecordProxy<U: IInterface>(
+      const recordProxy: IProxy<T>; const fromType, toType: PTypeInfo): IProxy<U>;
+
+    class function CreateNewMock(
+      const session: IMockSessionRecorder; const recordProxy: IProxy<T>;
+      const virtualProxy: IReadOnlyProxy<T>;
+      const dependencies: TList<TFunc<boolean, TVerifyResult>>): TMock<T>; static;
+
     class function ReportNoError(opt: TVerifyResult.TOption): string; static;
+    function BridgeVirtualProxy<U: IInterface>(const virtualProxy: IReadOnlyProxy<T>;
+      const fromType, toType: PTypeInfo): IReadOnlyProxy<U>;
   public
     class operator Implicit(const Value: TMock<T>): T;
 
@@ -36,6 +45,8 @@ type
 
     function Instance: T; overload;
     function Instance<U: IInterface>: U; overload;
+
+    function AsType<U: IInterface>: TMock<U>;
   end;
 
   TMock = record
@@ -63,6 +74,17 @@ uses
 ;
 
 { TMock<T> }
+
+class function TMock<T>.CreateNewMock(
+  const session: IMockSessionRecorder; const recordProxy: IProxy<T>;
+  const virtualProxy: IReadOnlyProxy<T>;
+  const dependencies: TList<TFunc<boolean, TVerifyResult>>): TMock<T>;
+begin
+  Result.FSession := session;
+  Result.FRecordProxy := recordProxy;
+  Result.FVirtualProxy := virtualProxy;
+  Result.FDependencies := dependencies;
+end;
 
 procedure TMock<T>.DependsOn<U>(slaveMock: TMock<U>);
 begin
@@ -139,33 +161,50 @@ begin
   FVirtualProxy.TryGetSubject(TypeInfo(U), Result);
 end;
 
-function TMock<T>.BridgeProxy<U>(const fromType, toType: PTypeInfo): IProxy<U>;
+function TMock<T>.AsType<U>: TMock<U>;
+var
+  instance: U;
+begin
+  Result := TMock<U>.CreateNewMock(
+    FSession,
+    Self.BridgeRecordProxy<U>(FRecordProxy, TypeInfo(T), TypeInfo(U)),
+    Self.BridgeVirtualProxy<U>(FVirtualProxy, TypeInfo(T), TypeInfo(U)),
+    TList<TFunc<boolean, TVerifyResult>>.Create(FDependencies)
+  );
+end;
+
+function TMock<T>.BridgeRecordProxy<U>(const recordProxy: IProxy<T>; const fromType, toType: PTypeInfo): IProxy<U>;
 var
   tmp: IInterface;
   childProxy: IProxy<IInterface>;
 begin
   if fromType = toType then begin
-    Result := TTypeBridgeProxy<T, U>.Create(FRecordProxy);
+    Result := TTypeProxyBridge<T, U>.Create(recordProxy);
   end
   else begin
-    Assert(FRecordProxy.QueryProxy(TMock.ExtractGuid(toType), tmp) = S_OK, 'Not Implemented interface.');
+    Assert(recordProxy.QueryProxy(TMock.ExtractGuid(toType), tmp) = S_OK, 'Not Implemented interface.');
     Assert(Supports(tmp, IProxy<IInterface>, childProxy));
 
-    Result := TTypeBridgeProxy<IInterface, U>.Create(childProxy);
+    Result := TTypeProxyBridge<IInterface, U>.Create(childProxy);
   end;
+end;
+
+function TMock<T>.BridgeVirtualProxy<U>(const virtualProxy: IReadOnlyProxy<T>; const fromType, toType: PTypeInfo): IReadOnlyProxy<U>;
+begin
+  Result := TTypeReadOnlyProxyBridge<T, U>.Create(virtualProxy);
 end;
 
 function TMock<T>.Setup<U>: IMockSetup<U>;
 begin
   Result := TMockSetup<U>.Create(TRoleInvokerBuilder<U>.Create(
-    Self.BridgeProxy<U>(TypeInfo(T), TypeInfo(U)), FSession
+    Self.BridgeRecordProxy<U>(FRecordProxy, TypeInfo(T), TypeInfo(U)), FSession
   ), false);
 end;
 
 function TMock<T>.Stub<U>: IMockSetup<U>;
 begin
   Result := TMockSetup<U>.Create(TRoleInvokerBuilder<U>.Create(
-    Self.BridgeProxy<U>(TypeInfo(T), TypeInfo(U)), FSession
+    Self.BridgeRecordProxy<U>(FRecordProxy, TypeInfo(T), TypeInfo(U)), FSession
   ), true);
 end;
 
@@ -173,7 +212,7 @@ function TMock<T>.Expect<U>(const expect: TMockExpectWrapper): IWhen<U>;
 begin
   Result :=
     TWhen<U>.Create(TRoleInvokerBuilder<U>.Create(
-      Self.BridgeProxy<U>(TypeInfo(T), TypeInfo(U)), FSession))
+      Self.BridgeRecordProxy<U>(FRecordProxy, TypeInfo(T), TypeInfo(U)), FSession))
     .Expect(expect)
   ;
 end;
@@ -186,19 +225,31 @@ end;
 { TMock }
 
 class function TMock.Create<T>: TMock<T>;
+var
+  session: IMockSessionRecorder;
 begin
-  Result.FDependencies := TList<TFunc<boolean, TVerifyResult>>.Create;
-  Result.FSession := TMockSessionRecorder.Create;
-  Result.FRecordProxy := TObjectRecordProxy<T>.Create;
-  Result.FVirtualProxy := TVirtualProxy<T>.Create(TObjectRecordProxy<T>.Create, Result.FSession);
+  session := TMockSessionRecorder.Create;
+
+  Result := TMock<T>.CreateNewMock(
+    session,
+    TObjectRecordProxy<T>.Create,
+    TVirtualProxy<T>.Create(TObjectRecordProxy<T>.Create, session),
+    TList<TFunc<boolean, TVerifyResult>>.Create
+  );
 end;
 
 class function TMock.Create<T>(const instance: T): TMock<T>;
+var
+  session: IMockSessionRecorder;
 begin
-  Result.FDependencies := TList<TFunc<boolean, TVerifyResult>>.Create;
-  Result.FSession := TMockSessionRecorder.Create;
-  Result.FRecordProxy := TObjectRecordProxy<T>.Create;
-  Result.FVirtualProxy := TVirtualProxy<T>.Create(TObjectRecordProxy<T>.Create(instance), Result.FSession);
+  session := TMockSessionRecorder.Create;
+
+  Result := TMock<T>.CreateNewMock(
+    session,
+    TObjectRecordProxy<T>.Create,
+    TVirtualProxy<T>.Create(TObjectRecordProxy<T>.Create(instance), session),
+    TList<TFunc<boolean, TVerifyResult>>.Create
+  );
 end;
 
 class function TMock.ExtractGuid(info: PTypeInfo): TGUID;
@@ -221,16 +272,20 @@ class function TMock.Implements<T>(
 var
   info: PTypeInfo;
   iid: TGUID;
+  session: IMockSessionRecorder;
 begin
   info := TypeInfo(T);
   iid := ExtractGuid(info);
+  session := TMockSessionRecorder.Create;
 
-  Result.FDependencies := TList<TFunc<boolean, TVerifyResult>>.Create;
-  Result.FSession := TMockSessionRecorder.Create;
-  Result.FRecordProxy := TInterfaceRecordProxy<T>.Create(iid, info, withInterfaces);
-  Result.FVirtualProxy := TVirtualProxy<T>.Create(
+  Result := TMock<T>.CreateNewMock(
+    session,
     TInterfaceRecordProxy<T>.Create(iid, info, withInterfaces),
-    Result.FSession
+    TVirtualProxy<T>.Create(
+      TInterfaceRecordProxy<T>.Create(iid, info, withInterfaces),
+      session
+    ),
+    TList<TFunc<boolean, TVerifyResult>>.Create
   );
 end;
 
