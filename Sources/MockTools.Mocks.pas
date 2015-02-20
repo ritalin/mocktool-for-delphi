@@ -242,6 +242,8 @@ class function TMock.Create<T>(const instance: T): TMock<T>;
 var
   session: IMockSessionRecorder;
 begin
+  Assert(Assigned(instance));
+
   session := TMockSessionRecorder.Create;
 
   Result := TMock<T>.CreateNewMock(

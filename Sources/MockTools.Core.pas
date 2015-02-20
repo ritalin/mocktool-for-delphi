@@ -521,7 +521,7 @@ type
 
 class function TArgComparer.IsSameObject(const ctx: TRttiContext; value1, value2: TValue): boolean;
 begin
-  if not (value1.IsEmpty xor value2.IsEmpty) then begin
+  if (value1.IsEmpty xor value2.IsEmpty) then begin
     Exit(false);
   end
   else if value1.IsEmpty and value2.IsEmpty then begin
@@ -538,14 +538,20 @@ var
   prop: TRttiProperty;
   same: boolean;
 begin
-  if not (value1.IsEmpty xor value2.IsEmpty) then begin
+  if (value1.IsEmpty xor value2.IsEmpty) then begin
     Exit(false);
   end
   else if value1.IsEmpty and value2.IsEmpty then begin
     Exit(true);
   end
+  else if value1.AsInterface = value2.AsInterface then begin
+    Exit(true);
+  end
   else begin
     t := ctx.GetType(value1.TypeInfo);
+
+    // Note that a generic interface does not have properties.
+
     for prop in t.GetProperties do begin
       same := IsSameArgValue(
         ctx,
@@ -611,10 +617,12 @@ class function TArgComparer.IsSameNumeric(const ctx: TRttiContext; value1, value
 
   function AsNumber(value: TValue): extended;
   begin
+    Assert(value.TypeInfo.Kind in [tkInteger, tkChar, tkWChar, tkEnumeration, tkInt64, TTypeKind.tkFloat], 'No numeric value is passed !!');
+
     if value.IsOrdinal then begin
       Result := value.AsOrdinal;
     end
-    else if value.TypeInfo.Kind = TTypeKind.tkFloat then begin
+    else begin
       Result := value.AsType<Extended>;
     end;
   end;
@@ -789,7 +797,9 @@ end;
 function TObjectRecordProxy<T>.TryGetSubject(const info: PTypeInfo;
   out outResult): boolean;
 begin
-  Assert(false, 'Not supported');
+  Assert(info.Kind = tkInterface);
+
+  Result := Supports(FInstance.AsObject, GetTypeData(info).Guid, outResult);
 end;
 
 function TObjectRecordProxy<T>.CreateInstance(const t: TRttiType): TValue;
@@ -1017,7 +1027,13 @@ begin
       Assert(Assigned(FOnCallback));
 
       doInvoke := false;
-      shiftedArgs := Copy(Args, Low(Args)+1, Integer.MaxValue);
+
+      if Length(Args) > 0 then begin
+        shiftedArgs := Copy(Args, Low(Args)+1, Integer.MaxValue);
+      end
+      else begin
+        shiftedArgs := Args;
+      end;
       FOnCallback(Self, Method, shiftedArgs, doInvoke, Result);
     end
   );
